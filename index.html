@@ -3,52 +3,1558 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Authority dashboard — CivicLoop</title>
-<link rel="stylesheet" href="css/authority.css">
+<title>CivicLoop — From community voice to real-world action</title>
+<meta name="description" content="CivicLoop turns community reports into tracked, accountable action.">
+<style>
+/* =========================================================
+   CivicLoop — styles
+   Palette: deep navy text, warm off-white background, teal/blue accents
+   ========================================================= */
+:root{
+  --navy:#0f1f3d;
+  --ink:#16243f;
+  --muted:#586377;
+  --bg:#f7f5ef;
+  --card:#ffffff;
+  --line:#e1ded4;
+  --teal:#0f766e;
+  --teal-dark:#0b5a54;
+  --teal-soft:#dcf1ed;
+  --blue:#245fa6;
+  --blue-soft:#e4edfa;
+  --warn-bg:#fff4d6;
+  --warn-ink:#6b4a00;
+  --danger:#a32424;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(15,31,61,.05),0 6px 20px rgba(15,31,61,.05);
+  --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--serif);color:var(--navy);line-height:1.2;margin:0 0 .5em;font-weight:700;overflow-wrap:anywhere}
+h1{font-size:clamp(2rem,4.5vw,3.1rem);letter-spacing:-.02em}
+h2{font-size:clamp(1.4rem,2.6vw,1.8rem)}
+h3{font-size:1.15rem}
+p{margin:0 0 1em;overflow-wrap:anywhere}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid #1d6fd6;outline-offset:2px;border-radius:4px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:8px;background:var(--navy);color:#fff;padding:8px 14px;border-radius:8px;z-index:100}
+.skip:focus{left:8px}
+.container{max-width:1120px;margin:0 auto;padding:0 20px}
+.icon{flex:none;vertical-align:-3px}
+
+/* ---------- Header ---------- */
+.site-header{background:rgba(247,245,239,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.header-inner{max-width:1120px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--navy)}
+.brand-name{font-family:var(--serif);font-weight:700;font-size:1.4rem;letter-spacing:-.02em;display:block;line-height:1}
+.brand-tag{display:block;font-size:.72rem;color:var(--muted);margin-top:3px;max-width:230px;line-height:1.25}
+.main-nav{margin-left:auto;display:flex;align-items:center;gap:4px}
+.main-nav a{color:var(--ink);text-decoration:none;padding:8px 12px;border-radius:999px;font-weight:600;font-size:.95rem}
+.main-nav a:hover{background:#ece9df}
+.main-nav a[aria-current="page"]{background:var(--navy);color:#fff}
+.menu-btn{display:none;margin-left:auto;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;color:var(--navy);cursor:pointer}
+.mode-btn{border:1.5px dashed var(--teal);background:transparent;color:var(--teal-dark);font-weight:700;border-radius:999px;padding:7px 14px;cursor:pointer;font-size:.85rem;font-family:inherit}
+.mode-btn[aria-pressed="true"]{background:var(--teal);color:#fff;border-style:solid}
+.authority-banner{background:var(--warn-bg);color:var(--warn-ink);border-bottom:1px solid #ecd9a0;font-size:.9rem}
+.authority-banner .container{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:8px;border:1.5px solid transparent;border-radius:999px;padding:11px 20px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;line-height:1.2;transition:background .15s,border-color .15s}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-dark)}
+.btn-secondary{background:#fff;color:var(--navy);border-color:#c9c6ba}
+.btn-secondary:hover{border-color:var(--navy)}
+.btn-ghost{background:transparent;color:var(--blue);padding:8px 12px}
+.btn-danger{background:#fff;color:var(--danger);border-color:#e3b6b6}
+.btn-danger:hover{background:#fdf0f0}
+.btn-sm{padding:7px 14px;font-size:.88rem}
+.btn[disabled],.btn[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
+.btn.is-active{background:var(--teal-soft);color:var(--teal-dark);border-color:var(--teal)}
+
+/* ---------- Layout helpers ---------- */
+main{display:block;padding:32px 0 56px;min-height:60vh}
+.section{margin-top:44px}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.section-head h2{margin:0}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--teal-dark);margin-bottom:10px}
+.lead{font-size:1.12rem;color:var(--muted);max-width:56ch}
+.grid{display:grid;gap:16px}
+.grid-cards{grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.notice{border-radius:12px;padding:12px 14px;font-size:.92rem;border:1px solid var(--line);background:#fff}
+.notice.warn{background:var(--warn-bg);color:var(--warn-ink);border-color:#ecd9a0}
+.notice.info{background:var(--blue-soft);color:#1b3d6e;border-color:#c5d8f3}
+.notice.ok{background:var(--teal-soft);color:var(--teal-dark);border-color:#b3ddd6}
+
+/* ---------- Hero ---------- */
+.hero{display:grid;grid-template-columns:1.25fr .9fr;gap:36px;align-items:center;padding:16px 0 8px}
+.hero h1 span{color:var(--teal)}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.journey{list-style:none;margin:0;padding:0;counter-reset:j}
+.journey li{position:relative;padding:0 0 18px 48px;counter-increment:j}
+.journey li:last-child{padding-bottom:0}
+.journey li::before{content:counter(j);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.journey li::after{content:"";position:absolute;left:15px;top:34px;bottom:2px;width:2px;background:var(--line)}
+.journey li:last-child::after{display:none}
+.journey strong{display:block;color:var(--navy)}
+
+/* ---------- Stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.stat-num{font-family:var(--serif);font-size:2.2rem;font-weight:700;color:var(--navy);line-height:1}
+.stat-label{font-size:.88rem;color:var(--muted);margin-top:6px}
+
+/* ---------- Badges ---------- */
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:700;padding:3px 10px;border-radius:999px;background:#ece9e0;color:#3d4656;white-space:nowrap}
+.b-cat{background:#fff;border:1px solid var(--line);color:var(--muted)}
+.b-submitted{background:#ece9e0;color:#3d4656}
+.b-under-review{background:#e3ecfb;color:#1e40af}
+.b-verified{background:#dcf3ee;color:#0b5a54}
+.b-insufficient-evidence{background:#fbe9d9;color:#8a3b0c}
+.b-forwarded{background:#e8e4f7;color:#4b3a99}
+.b-in-progress{background:#fff0c2;color:#7a5200}
+.b-resolved{background:#d9f0dd;color:#1e5b2c}
+.b-sev-low{background:#e6efe7;color:#2f5a37}
+.b-sev-medium{background:#fff0c2;color:#7a5200}
+.b-sev-high{background:#fde0d2;color:#8a3b0c}
+.b-sev-critical{background:#fbd3d3;color:#8a1c1c}
+
+/* ---------- Issue cards ---------- */
+.issue-card{position:relative;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,transform .15s}
+.issue-card:hover{border-color:#b9c4d6;transform:translateY(-1px)}
+.issue-card h3{margin:0}
+.issue-card h3 a{color:var(--navy);text-decoration:none}
+.issue-card h3 a::after{content:"";position:absolute;inset:0;border-radius:var(--radius)}
+.issue-card h3 a:focus-visible{outline:none}
+.issue-card:focus-within{outline:3px solid #1d6fd6;outline-offset:2px}
+.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted);margin:0}
+.meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.86rem;color:var(--muted);margin:0}
+.card-foot{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted)}
+.card-foot span{display:inline-flex;align-items:center;gap:5px}
+.card-foot .push{margin-left:auto}
+
+/* ---------- Lists (activity) ---------- */
+.activity{list-style:none;margin:0;padding:0}
+.activity li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.activity li:last-child{border-bottom:0}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--teal);margin-top:8px;flex:none}
+.activity a{font-weight:600}
+
+/* ---------- Forms ---------- */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+label,.label{font-weight:700;font-size:.92rem;color:var(--navy)}
+.hint{font-size:.82rem;color:var(--muted);font-weight:400}
+input[type=text],input[type=search],select,textarea,input[type=file]{font:inherit;color:var(--ink);background:#fff;border:1.5px solid #c9c6ba;border-radius:10px;padding:10px 12px;width:100%}
+textarea{min-height:110px;resize:vertical}
+input:hover,select:hover,textarea:hover{border-color:#8f99ab}
+[aria-invalid="true"]{border-color:var(--danger)!important}
+.field-error{color:var(--danger);font-size:.84rem;font-weight:600;margin:0}
+.error-summary{border:1.5px solid #e3b6b6;background:#fdf0f0;color:#7d1d1d;border-radius:12px;padding:12px 14px;margin-bottom:16px}
+.preview{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;max-width:360px;background:#fff}
+.preview img{display:block;width:100%;height:auto}
+.char-count{font-size:.8rem;color:var(--muted);text-align:right}
+
+/* ---------- Feed controls ---------- */
+.toolbar{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:18px}
+.search-wrap{position:relative}
+.search-wrap .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search-wrap input{padding-left:38px}
+.empty{text-align:center;padding:48px 20px;border:2px dashed #cfcbbd;border-radius:var(--radius);color:var(--muted);background:rgba(255,255,255,.5)}
+
+/* ---------- Issue detail ---------- */
+.detail{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start}
+.evidence{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:#fff}
+.evidence img{display:block;width:100%;max-height:420px;object-fit:cover;background:#e9e6dc}
+.evidence figcaption{padding:10px 14px;font-size:.84rem;color:var(--muted);border-top:1px solid var(--line)}
+.img-fallback{padding:40px 20px;text-align:center;color:var(--muted);background:#efece2}
+.support-count{font-family:var(--serif);font-size:2.6rem;font-weight:700;color:var(--navy);line-height:1}
+.aside-stack{display:grid;gap:16px;position:sticky;top:96px}
+.factor{margin:12px 0}
+.factor-top{display:flex;justify-content:space-between;font-size:.88rem;gap:8px}
+.bar{height:8px;background:#ece9e0;border-radius:99px;overflow:hidden;margin-top:5px}
+.bar>i{display:block;height:100%;background:var(--blue);border-radius:99px}
+.score{font-family:var(--serif);font-size:2rem;font-weight:700;color:var(--navy)}
+.timeline{list-style:none;margin:0;padding:0}
+.timeline li{position:relative;padding:0 0 22px 28px}
+.timeline li:last-child{padding-bottom:0}
+.timeline li::before{content:"";position:absolute;left:0;top:6px;width:12px;height:12px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px var(--teal-soft)}
+.timeline li::after{content:"";position:absolute;left:5px;top:22px;bottom:-4px;width:2px;background:var(--line)}
+.timeline li:last-child::after{display:none}
+.timeline .t-actor{font-size:.78rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em}
+.timeline .t-time{font-size:.82rem;color:var(--muted)}
+.timeline .t-note{background:#f3f1ea;border-radius:10px;padding:8px 12px;margin:6px 0 0;font-size:.92rem}
+.comment{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.comment:last-child{border-bottom:0}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-weight:700;flex:none}
+.comment p{margin:2px 0 0}
+
+/* ---------- Authority table ---------- */
+.table-wrap{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:12px 14px;background:#faf9f4;border-bottom:1px solid var(--line)}
+td{padding:14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.92rem}
+tr:last-child td{border-bottom:0}
+td .title{font-weight:700;color:var(--navy);display:block;overflow-wrap:anywhere}
+.mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+
+/* ---------- Dialog ---------- */
+dialog{border:0;border-radius:18px;padding:0;max-width:720px;width:calc(100% - 24px);box-shadow:0 20px 60px rgba(15,31,61,.35);background:var(--bg);color:var(--ink)}
+dialog::backdrop{background:rgba(15,31,61,.55)}
+.dialog-head{display:flex;justify-content:space-between;gap:12px;align-items:start;padding:20px 22px;border-bottom:1px solid var(--line);background:#fff;border-radius:18px 18px 0 0}
+.dialog-body{padding:20px 22px;display:grid;gap:16px;max-height:70vh;overflow:auto}
+
+/* ---------- Footer / toast ---------- */
+footer{border-top:1px solid var(--line);background:#efece3;padding:28px 0;font-size:.88rem;color:var(--muted)}
+.footer-inner{display:flex;gap:20px;justify-content:space-between;flex-wrap:wrap;align-items:center}
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:200;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast.error{background:var(--danger)}
+
+
+/* ---------- Visual polish ---------- */
+::selection{background:#bfe6e0;color:var(--navy)}
+body{background:radial-gradient(1000px 460px at 88% -120px,rgba(15,118,110,.11),transparent 62%),radial-gradient(760px 420px at -8% 160px,rgba(36,95,166,.08),transparent 60%),var(--bg);background-repeat:no-repeat}
+.site-header{background:rgba(255,255,255,.84);box-shadow:0 1px 0 var(--line),0 10px 30px -18px rgba(15,31,61,.25)}
+.brand-name{font-size:1.5rem}
+@media (min-width:821px){
+  .main-nav{background:#f1eee5;border:1px solid var(--line);padding:4px;border-radius:999px;gap:2px}
+  .main-nav a{padding:7px 14px;font-size:.92rem}
+  .main-nav a:hover{background:#fff}
+  .main-nav .mode-btn{margin-left:6px}
+}
+.btn{transition:background .15s,border-color .15s,transform .12s,box-shadow .15s}
+.btn:active{transform:translateY(1px)}
+.btn-primary{box-shadow:0 6px 16px rgba(15,118,110,.26)}
+.btn-primary:hover{box-shadow:0 10px 22px rgba(15,118,110,.34);transform:translateY(-1px)}
+.btn-secondary:hover{background:#faf9f4}
+.btn-light{background:#fff;color:var(--navy)}
+.btn-light:hover{background:var(--teal-soft)}
+.btn-danger-solid{background:var(--danger);color:#fff}
+.btn-danger-solid:hover{background:#861c1c}
+.card{border-radius:18px;box-shadow:0 1px 2px rgba(15,31,61,.04),0 14px 34px -16px rgba(15,31,61,.16)}
+
+/* hero */
+.hero{padding:28px 0 12px}
+.hero h1 span{background:linear-gradient(transparent 64%,rgba(15,118,110,.2) 64%);color:var(--teal-dark);padding:0 .08em}
+.hero-card{padding:0;overflow:hidden}
+.hero-card h2,.hero-card .journey{margin-left:24px;margin-right:24px}
+.hero-card h2{margin-top:20px}
+.hero-card .journey{padding-bottom:24px;margin-bottom:0}
+.hero-art{display:block;width:100%;height:auto}
+
+/* stats */
+.stat{display:flex;gap:14px;align-items:center;border-radius:18px;box-shadow:0 1px 2px rgba(15,31,61,.04),0 10px 26px -16px rgba(15,31,61,.18)}
+.stat-ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:var(--teal-soft);color:var(--teal-dark);flex:none}
+.stat:nth-child(2) .stat-ic{background:var(--blue-soft);color:var(--blue)}
+.stat:nth-child(3) .stat-ic{background:#e8e4f7;color:#4b3a99}
+.stat:nth-child(4) .stat-ic{background:#d9f0dd;color:#1e5b2c}
+
+/* badges */
+.badge{padding:4px 11px}
+.badge:not(.b-cat)::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+
+/* issue cards with evidence thumbnail */
+.issue-card{padding:0;overflow:hidden;gap:0}
+.issue-card:hover{transform:translateY(-3px);box-shadow:0 20px 42px -18px rgba(15,31,61,.3);border-color:#c3ccdb}
+.thumb{position:relative;aspect-ratio:16/8;background:#e9e6dc;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.issue-card:hover .thumb img{transform:scale(1.045)}
+.thumb-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-size:.85rem;background:repeating-linear-gradient(135deg,#efece2,#efece2 10px,#f5f2e9 10px,#f5f2e9 20px)}
+.thumb .img-fallback{height:100%;padding:0;display:grid;place-items:center;font-size:.85rem}
+.thumb-sev{position:absolute;left:12px;top:12px}
+.thumb-sev .badge{box-shadow:0 2px 10px rgba(15,31,61,.22)}
+.card-body{display:flex;flex-direction:column;gap:6px;padding:16px 20px 18px;flex:1}
+
+/* filter toolbar as a card */
+.toolbar{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 10px 26px -18px rgba(15,31,61,.2)}
+.table-wrap{border-radius:18px;box-shadow:0 10px 26px -18px rgba(15,31,61,.2)}
+tbody tr:hover td{background:#fbfaf6}
+
+/* call-to-action band */
+.cta-band{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;background:var(--navy);color:#fff;border-radius:22px;padding:30px 34px;position:relative;overflow:hidden}
+.cta-band::after{content:"";position:absolute;right:-70px;top:-70px;width:230px;height:230px;border:32px solid rgba(95,208,196,.16);border-radius:50%}
+.cta-band>*{position:relative;z-index:1}
+.cta-band h2{color:#fff;margin-bottom:6px}
+.cta-band p{margin:0;color:#c5cee0;max-width:54ch}
+
+/* footer */
+footer{background:var(--navy);border-top:0;color:#b9c4da}
+footer strong{color:#fff}
+
+.main-nav a[aria-current="page"],.main-nav a[aria-current="page"]:hover{background:var(--navy);color:#fff}
+/* header fit + location line */
+.header-inner{flex-wrap:nowrap}
+.brand{flex:none}
+.brand-tag{max-width:200px}
+.main-nav .mode-btn{font-size:.8rem;padding:6px 12px;white-space:nowrap}
+.meta{flex-wrap:nowrap;align-items:flex-start}
+.meta .icon{margin-top:4px}
+.meta span{min-width:0}
+@media (max-width:820px){.header-inner{flex-wrap:wrap}}
+
+/* confirm dialog */
+.confirm-dlg{max-width:440px;padding:26px}
+.confirm-dlg h2{font-size:1.3rem}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
+
+/* ---------- Responsive ---------- */
+@media (max-width:980px){
+  .hero{grid-template-columns:1fr}
+  .detail{grid-template-columns:1fr}
+  .aside-stack{position:static}
+  .toolbar{grid-template-columns:1fr 1fr}
+  .toolbar .search-wrap{grid-column:1/-1}
+  .stats,.mini-stats{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:820px){
+  .menu-btn{display:inline-flex}
+  .main-nav{display:none;order:5;width:100%;flex-direction:column;align-items:stretch;margin:0;padding-top:6px}
+  .main-nav.open{display:flex}
+  .main-nav a{padding:12px 14px}
+  .brand-tag{display:none}
+}
+@media (max-width:760px){
+  .form-grid{grid-template-columns:1fr}
+  .table-wrap{background:transparent;border:0}
+  thead{position:absolute;left:-9999px}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{background:#fff;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;padding:6px 0;box-shadow:var(--shadow)}
+  td{border:0;padding:8px 16px;display:flex;gap:12px;justify-content:space-between;align-items:start}
+  td::before{content:attr(data-label);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;flex:none;padding-top:3px}
+  td>*:not(:first-child){text-align:right}
+}
+@media (max-width:480px){
+  .stats,.mini-stats,.toolbar{grid-template-columns:1fr}
+  .card{padding:16px}
+}
+
+/* ---------- Sign-in + roles (same cream theme as the rest of the app) ---------- */
+[hidden]{display:none!important}
+input[type=password]{font:inherit;color:var(--ink);background:#fff;border:1.5px solid #c9c6ba;border-radius:10px;padding:10px 12px;width:100%}
+input[type=password]:hover{border-color:#8f99ab}
+#login-screen{display:none;min-height:100vh;padding:24px 16px;align-items:center;justify-content:center}
+body.auth-mode #login-screen{display:flex}
+body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main,body.auth-mode footer,body.auth-mode .skip{display:none!important}
+.login-card{width:100%;max-width:470px;padding:32px 30px}
+.login-brand{display:flex;gap:14px;align-items:center}
+.login-brand h1{font-size:2rem;margin:0}
+.login-sub{margin:4px 0 0;color:var(--muted);font-size:.88rem;line-height:1.4}
+.login-tag{margin:16px 0 0;color:var(--teal-dark);font-weight:700;font-size:.92rem}
+.login-card h2{font-size:1rem;margin:26px 0 12px;font-family:var(--sans)}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.role{position:relative;display:block;font-weight:400}
+.role input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0;width:100%;height:100%}
+.role-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:14px;background:#fff;border:1.5px solid #c9c6ba;text-align:center;font-weight:700;font-size:.9rem;color:var(--navy);transition:background .15s,border-color .15s}
+.role-tile small{font-weight:500;color:var(--muted);font-size:.76rem;line-height:1.3}
+.role-tile svg{color:var(--teal-dark)}
+.role:hover .role-tile{border-color:#8f99ab}
+.role input:checked + .role-tile{background:var(--teal-soft);border-color:var(--teal)}
+.role input:focus-visible + .role-tile{outline:3px solid #1d6fd6;outline-offset:2px}
+.login-form{display:grid;gap:14px;margin-top:16px}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:70px}
+.pw-wrap button{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--teal-dark);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;padding:6px 8px;border-radius:8px}
+.pw-wrap button:hover{background:var(--teal-soft)}
+.login-switch{margin:18px 0 0;font-size:.92rem;text-align:center}
+.demo-box{margin-top:18px;background:#faf9f4;border:1.5px dashed #cfcbbd;border-radius:12px;padding:12px 14px;font-size:.84rem;color:var(--muted);line-height:1.55}
+.demo-box strong{color:var(--navy)}
+.demo-fill{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.user-chip{display:inline-flex;align-items:center;gap:8px;padding:3px 12px 3px 3px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:.84rem;font-weight:700;color:var(--navy);white-space:nowrap}
+.user-chip .avatar{width:28px;height:28px;font-size:.82rem}
+.user-chip small{font-weight:700;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--teal-dark);background:var(--teal-soft);border-radius:999px;padding:2px 8px}
+.user-chip.is-authority small{background:var(--warn-bg);color:var(--warn-ink)}
+.main-nav .btn-sm{white-space:nowrap}
+@media (max-width:480px){.login-card{padding:26px 20px}.roles{gap:8px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
 </head>
-<body>
-<div id="mock-banner" hidden><strong>DEMO MOCK:</strong> sample data in memory, not the real backend. Nothing is sent to any real authority.</div>
-<header><div class="bar">
-  <a class="brand" href="index.html">CivicLoop</a>
-  <nav aria-label="Main">
-    <a href="../user/index.html">Public site</a>
-    <a href="index.html" aria-current="page">Authority dashboard</a>
-    <button class="btn secondary" type="button" data-logout>Log out</button>
-  </nav>
-</div></header>
-<main><div class="container">
-  <h1>Authority dashboard</h1>
-  <p class="muted">Review reported issues. Support count, verification, severity and progress are shown separately. You can act only on issues a moderator has verified.</p>
+<body class="auth-mode">
+<a class="skip" href="#main">Skip to main content</a>
 
-  <div class="stats" aria-label="Summary">
-    <div class="stat"><b id="s-await">–</b>Verified, awaiting action</div>
-    <div class="stat"><b id="s-ack">–</b>Acknowledged</div>
-    <div class="stat"><b id="s-prog">–</b>In progress</div>
-    <div class="stat"><b id="s-done">–</b>Resolved</div>
+<!-- ============ SIGN-IN SCREEN (shown first, every time the prototype opens) ============ -->
+<section id="login-screen" aria-labelledby="login-title">
+  <div class="card login-card">
+    <div class="login-brand">
+      <svg width="54" height="54" viewBox="0 0 40 40" aria-hidden="true" focusable="false" style="flex:none">
+          <rect width="40" height="40" rx="11" fill="#0f1f3d"/>
+          <path d="M12 24a8 8 0 1 1 8 8" fill="none" stroke="#5fd0c4" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M20 32l4-4M20 32l4 4" fill="none" stroke="#5fd0c4" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="24" r="3.2" fill="#ffffff"/>
+        </svg>
+      <div>
+        <h1 id="login-title">CivicLoop</h1>
+        <p class="login-sub">Community Issue Reporting &amp; Accountability</p>
+      </div>
+    </div>
+    <p class="login-tag">From community voice to real-world action.</p>
+
+    <form id="login-form" class="login-form" novalidate>
+      <div>
+        <h2 id="signas" style="margin-top:22px">Sign in as</h2>
+        <div class="roles" role="radiogroup" aria-labelledby="signas">
+          <label class="role"><input type="radio" name="role" value="user" checked><span class="role-tile"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Civilian<small>Report &amp; track issues</small></span></label>
+          <label class="role"><input type="radio" name="role" value="authority"><span class="role-tile"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v9M9.5 10v9M14.5 10v9M19 10v9M3 21h18"/></svg>Authority<small>Review &amp; respond</small></span></label>
+        </div>
+      </div>
+
+      <div class="field" id="name-field" hidden>
+        <label for="lg-name">Full name</label>
+        <input id="lg-name" type="text" autocomplete="name" maxlength="40">
+      </div>
+      <div class="field">
+        <label for="lg-id">Login ID</label>
+        <input id="lg-id" type="text" autocomplete="username" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="lg-pw">Password</label>
+        <div class="pw-wrap">
+          <input id="lg-pw" type="password" autocomplete="current-password">
+          <button type="button" id="lg-eye" aria-label="Show password">Show</button>
+        </div>
+      </div>
+
+      <p class="error-summary" id="lg-msg" role="alert" hidden style="margin:0"></p>
+      <button class="btn btn-primary" id="lg-go" type="submit" style="justify-content:center;width:100%;padding:14px 20px">Sign in</button>
+    </form>
+
+    <p class="login-switch"><button class="btn btn-ghost btn-sm" type="button" id="lg-toggle">Create a test account</button></p>
+
+    <div class="demo-box">
+      <strong>Sign-in details</strong> — Civilian: <strong>citizen</strong> / <strong>demo123</strong> · Authority: <strong>officer</strong> / <strong>demo123</strong>
+      <div class="demo-fill">
+        <button class="btn btn-secondary btn-sm" type="button" data-fill="citizen">Fill civilian login</button>
+        <button class="btn btn-secondary btn-sm" type="button" data-fill="officer">Fill authority login</button>
+      </div>
+    </div>
   </div>
+</section>
 
-  <form id="filters" class="toolbar card" novalidate>
-    <div class="field"><label for="q">Locality or city</label><input id="q" name="q" type="search"></div>
-    <div class="field"><label for="pin_code">PIN code</label><input id="pin_code" name="pin_code" type="text" inputmode="numeric" maxlength="6"></div>
-    <div class="field"><label for="category">Category</label><select id="category" name="category">
-      <option value="">All</option><option value="road">Road</option><option value="garbage">Garbage</option><option value="water">Water</option>
-      <option value="electricity">Electricity</option><option value="safety">Safety</option><option value="college">College</option><option value="other">Other</option></select></div>
-    <div class="field"><label for="verification_status">Verification</label><select id="verification_status" name="verification_status">
-      <option value="">All</option><option value="submitted">Submitted</option><option value="under_review">Under review</option><option value="verified">Verified</option><option value="insufficient_evidence">Insufficient evidence</option></select></div>
-    <div class="field"><label for="progress_status">Progress</label><select id="progress_status" name="progress_status">
-      <option value="">All</option><option value="none">Not started</option><option value="acknowledged">Acknowledged</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select></div>
-    <div class="field"><label for="sort">Sort by</label><select id="sort" name="sort">
-      <option value="severity">Highest severity</option><option value="newest">Newest</option><option value="support">Most support</option></select></div>
-    <button class="btn" type="submit">Apply</button>
-  </form>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="#/home" aria-label="CivicLoop home">
+      <!-- Simple logo: a looping path ending in a node -->
+      <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <rect width="40" height="40" rx="11" fill="#0f1f3d"/>
+        <path d="M12 24a8 8 0 1 1 8 8" fill="none" stroke="#5fd0c4" stroke-width="3.2" stroke-linecap="round"/>
+        <path d="M20 32l4-4M20 32l4 4" fill="none" stroke="#5fd0c4" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="24" r="3.2" fill="#ffffff"/>
+      </svg>
+      <span><span class="brand-name">CivicLoop</span><span class="brand-tag">From community voice to real-world action.</span></span>
+    </a>
+    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="main-nav" aria-label="Toggle navigation menu">
+      <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <nav class="main-nav" id="main-nav" aria-label="Main">
+      <a href="#/home" data-nav="home" data-for="user">Home</a>
+      <a href="#/authority" data-nav="authority" data-for="authority">Dashboard</a>
+      <a href="#/feed" data-nav="feed" data-for="both">Feed</a>
+      <a href="#/report" data-nav="report" data-for="user">Report</a>
+      <span class="user-chip" id="user-chip"></span>
+      <button class="btn btn-secondary btn-sm" type="button" data-action="logout">Sign out</button>
+    </nav>
+  </div>
+</header>
 
-  <p id="list-msg" class="err" role="alert"></p>
-  <div id="list" aria-live="polite"></div>
-  <div class="pager"><button class="btn secondary" type="button" id="prev">Previous</button><span id="page-info" class="muted small"></span><button class="btn secondary" type="button" id="next">Next</button></div>
-</div></main>
-<div id="toast" role="status" hidden></div>
-<script src="js/mock-authority.js"></script>
-<script src="js/authority-api.js"></script>
-<script src="js/dashboard.js"></script>
+<main id="main" tabindex="-1">
+  <div id="app" class="container"></div>
+</main>
+
+<dialog id="manage-dialog" aria-labelledby="md-title"></dialog>
+<dialog id="confirm-dialog" class="confirm-dlg" aria-labelledby="cf-title">
+  <h2 id="cf-title"></h2>
+  <p id="cf-text" class="muted" style="margin:0"></p>
+  <div class="confirm-actions"><button type="button" class="btn btn-secondary" id="confirm-cancel">Cancel</button><button type="button" class="btn btn-primary" id="confirm-ok">Confirm</button></div>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =========================================================
+   CivicLoop — frontend-only demo
+   Everything lives in this file. Data is stored in localStorage.
+   Sign-in comes first: Civilian and Authority each get their own pages.
+   Read top to bottom: (1) setup, (2) data, (3) helpers,
+   (4) views, (5) actions, (6) events.
+   ========================================================= */
+(function () {
+  'use strict';
+
+  /* ---------- 1. SETUP & CONSTANTS ---------- */
+  var STORAGE_KEY = 'civicloop_demo_v1';
+  var ACCOUNTS_KEY = 'civicloop_accounts_v1';
+
+  // Who is signed in. Kept in memory only, so the sign-in screen appears every time the prototype is opened.
+  var session = null; // { id, name, role: 'user' | 'authority' }
+  function isAuthority() { return !!session && session.role === 'authority'; }
+
+  // Issue categories (key -> label)
+  var CATEGORIES = {
+    roads: 'Roads & Potholes',
+    waste: 'Waste & Sanitation',
+    lighting: 'Street Lighting',
+    water: 'Water & Drainage',
+    campus: 'College Facilities',
+    other: 'Other'
+  };
+
+  // Two SEPARATE tracks, so "verified" never gets mixed up with "fixed":
+  //  - verification: is the report credible? (demo moderator)
+  //  - progress: what has the (simulated) authority done?
+  var VERIFICATION = ['Submitted', 'Under Review', 'Verified', 'Insufficient Evidence'];
+  var PROGRESS = ['Forwarded', 'In Progress', 'Resolved']; // order matters: you can't go backwards
+  var ALL_STATUSES = ['Submitted', 'Under Review', 'Verified', 'Insufficient Evidence', 'Forwarded', 'In Progress', 'Resolved'];
+
+  var SAFETY_LABELS = { 1: 'Minor inconvenience', 2: 'Low risk', 3: 'Moderate risk', 4: 'High risk', 5: 'Immediate danger' };
+  var AFFECTED_LABELS = { 1: 'A few people (under 10)', 2: '10 – 50 people', 3: '50 – 200 people', 4: '200 – 1,000 people', 5: 'More than 1,000 people' };
+  var EVIDENCE_LABELS = { 1: 'None or unclear', 2: 'Weak', 3: 'Fair', 4: 'Good', 5: 'Strong' };
+
+  /* ---------- 2. DATA (seed + load/save) ---------- */
+  function hoursAgo(h) { return new Date(Date.now() - h * 3600000).toISOString(); }
+
+  // Builds the fictional starting data. Called on first visit and on reset.
+  function seed() {
+    var issues = [
+      {
+        id: 'ci-1001', title: 'Deep pothole near Sunrise Chowk bus stop',
+        description: 'A pothole roughly 40 cm deep has opened in the left lane right where buses stop. Two-wheelers swerve into traffic to avoid it, and a cyclist fell last week. It fills with water when it rains, so it is hard to see at night.',
+        category: 'roads', locality: 'Sunrise Chowk, Ward 12', city: 'Meridian Nagar', pin: '411045',
+        impact: { safety: 4, affected: 4 }, evidenceRating: 4, image: null, sampleArt: 'roads',
+        reporter: 'Asha R.', createdAt: hoursAgo(120), supports: 148, flags: 0,
+        verification: 'Verified', progress: 'In Progress',
+        timeline: [
+          { ts: hoursAgo(120), type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' },
+          { ts: hoursAgo(96), type: 'verification', label: 'Verification: Verified', actor: 'Moderator', note: 'Photo shows the pothole depth and the bus-stop landmark matches the stated location.' },
+          { ts: hoursAgo(72), type: 'progress', label: 'Progress: Forwarded', actor: 'Authority', note: 'Forwarded to the Roads Maintenance Cell for inspection.' },
+          { ts: hoursAgo(24), type: 'progress', label: 'Progress: In Progress', actor: 'Authority', note: 'A repair crew is scheduled for this week. Traffic cones placed as a temporary measure.' }
+        ],
+        comments: [
+          { id: 'c1', name: 'Imran K.', text: 'I pass this every morning. Please fix before the monsoon gets worse.', ts: hoursAgo(100) },
+          { id: 'c2', name: 'Neha P.', text: 'Cones are up now, but the hole is still there.', ts: hoursAgo(20) }
+        ]
+      },
+      {
+        id: 'ci-1002', title: 'Garbage overflowing at Lake View Market lane',
+        description: 'The community bin has not been cleared for about five days. Waste is spilling onto the lane, stray animals are scattering it, and the smell is affecting nearby shops and the tuition centre next door.',
+        category: 'waste', locality: 'Lake View Market', city: 'Meridian Nagar', pin: '411057',
+        impact: { safety: 3, affected: 4 }, evidenceRating: 3, image: null, sampleArt: 'waste',
+        reporter: 'Vikram S.', createdAt: hoursAgo(60), supports: 86, flags: 1,
+        verification: 'Under Review', progress: null,
+        timeline: [
+          { ts: hoursAgo(60), type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' },
+          { ts: hoursAgo(30), type: 'verification', label: 'Verification: Under Review', actor: 'Moderator', note: 'Asked for a second photo showing the full lane.' }
+        ],
+        comments: [{ id: 'c3', name: 'Shopkeeper (anonymous)', text: 'Customers are avoiding this side of the market.', ts: hoursAgo(40) }]
+      },
+      {
+        id: 'ci-1003', title: 'Three streetlights out on Canal Road footpath',
+        description: 'Three consecutive streetlights between the pedestrian bridge and the pharmacy have been off for two weeks. Students and evening walkers use this stretch; it is completely dark after 7 pm.',
+        category: 'lighting', locality: 'Canal Road', city: 'Meridian Nagar', pin: '411045',
+        impact: { safety: 5, affected: 5 }, evidenceRating: 4, image: null, sampleArt: 'lighting',
+        reporter: 'Divya M.', createdAt: hoursAgo(200), supports: 203, flags: 0,
+        verification: 'Verified', progress: 'Forwarded',
+        timeline: [
+          { ts: hoursAgo(200), type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' },
+          { ts: hoursAgo(170), type: 'verification', label: 'Verification: Verified', actor: 'Moderator', note: 'Night-time photo with pole numbers visible. Matches location.' },
+          { ts: hoursAgo(140), type: 'progress', label: 'Progress: Forwarded', actor: 'Authority', note: 'Forwarded to the Electrical Maintenance wing. Awaiting a work order.' }
+        ],
+        comments: [{ id: 'c4', name: 'Rohan T.', text: 'I walk back from the library here. It feels unsafe now.', ts: hoursAgo(150) }]
+      },
+      {
+        id: 'ci-1004', title: 'Water pipe leaking on Green Park Colony main road',
+        description: 'A joint in the supply pipe has been leaking for several days and has created a small stream across the road. Water pressure in nearby lanes has dropped in the mornings.',
+        category: 'water', locality: 'Green Park Colony', city: 'Meridian Nagar', pin: '411038',
+        impact: { safety: 2, affected: 3 }, evidenceRating: 4, image: null, sampleArt: 'water',
+        reporter: 'Kavita L.', createdAt: hoursAgo(260), supports: 61, flags: 0,
+        verification: 'Verified', progress: 'Resolved',
+        timeline: [
+          { ts: hoursAgo(260), type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' },
+          { ts: hoursAgo(240), type: 'verification', label: 'Verification: Verified', actor: 'Moderator', note: 'Video and photo both show continuous flow at the same junction.' },
+          { ts: hoursAgo(220), type: 'progress', label: 'Progress: Forwarded', actor: 'Authority', note: 'Forwarded to the Water Supply Section.' },
+          { ts: hoursAgo(100), type: 'progress', label: 'Progress: Resolved', actor: 'Authority', note: 'Pipe joint replaced and road surface patched. Residents asked to report if the leak returns.' }
+        ],
+        comments: [{ id: 'c5', name: 'Kavita L.', text: 'Leak has stopped and pressure is back to normal. Thank you everyone.', ts: hoursAgo(90) }]
+      },
+      {
+        id: 'ci-1005', title: 'Central Library reading hall fans and AC not working',
+        description: 'Most ceiling fans and the AC in the second-floor reading hall have been off for over a week. With exams approaching, the hall is stuffy and many students have moved elsewhere.',
+        category: 'campus', locality: 'Central Library, Main Campus', city: 'Meridian Nagar', pin: '411016',
+        impact: { safety: 1, affected: 5 }, evidenceRating: null, image: null, sampleArt: null,
+        reporter: 'Student volunteer', createdAt: hoursAgo(36), supports: 312, flags: 0,
+        verification: 'Submitted', progress: null,
+        timeline: [{ ts: hoursAgo(36), type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' }],
+        comments: [
+          { id: 'c6', name: 'Anil G.', text: 'Same problem on the first floor too.', ts: hoursAgo(30) },
+          { id: 'c7', name: 'Sara B.', text: 'Can someone add a photo? That would help review.', ts: hoursAgo(12) }
+        ]
+      },
+      {
+        id: 'ci-1006', title: 'Broken handrail on Hostel B staircase',
+        description: 'The metal handrail on the staircase between the ground and first floor has snapped and is loose at one end. The steps are also slippery after the corridor is mopped.',
+        category: 'campus', locality: 'Hostel B, Main Campus', city: 'Meridian Nagar', pin: '411016',
+        impact: { safety: 5, affected: 3 }, evidenceRating: 5, image: null, sampleArt: 'campus',
+        reporter: 'Hostel resident', createdAt: hoursAgo(80), supports: 47, flags: 0,
+        verification: 'Verified', progress: null,
+        timeline: [
+          { ts: hoursAgo(80), type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' },
+          { ts: hoursAgo(50), type: 'verification', label: 'Verification: Verified', actor: 'Moderator', note: 'Clear close-up photos of the break and the stairwell.' }
+        ],
+        comments: []
+      },
+      {
+        id: 'ci-1007', title: 'Waterlogging near the old school gate',
+        description: 'There is water on the road sometimes.',
+        category: 'water', locality: 'Old School Road', city: 'Meridian Nagar', pin: '411038',
+        impact: { safety: 2, affected: 2 }, evidenceRating: 1, image: null, sampleArt: null,
+        reporter: 'Anonymous community member', createdAt: hoursAgo(150), supports: 9, flags: 2,
+        verification: 'Insufficient Evidence', progress: null,
+        timeline: [
+          { ts: hoursAgo(150), type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' },
+          { ts: hoursAgo(120), type: 'verification', label: 'Verification: Insufficient Evidence', actor: 'Moderator', note: 'No photo, no date and the exact spot is unclear. Reporter is invited to submit a new report with details.' }
+        ],
+        comments: []
+      }
+    ];
+
+    var activity = [];
+    issues.forEach(function (i) {
+      i.timeline.forEach(function (t) {
+        activity.push({ ts: t.ts, text: t.type === 'submitted' ? 'New report: ' + i.title : t.label + ' — ' + i.title, issueId: i.id });
+      });
+      i.comments.forEach(function (c) {
+        activity.push({ ts: c.ts, text: c.name + ' commented on ' + i.title, issueId: i.id });
+      });
+    });
+    activity.sort(function (a, b) { return new Date(b.ts) - new Date(a.ts); });
+
+    return { version: 1, authority: false, issues: issues, activity: activity.slice(0, 40), profile: { supported: [], flagged: [] } };
+  }
+
+  var state = load();
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.issues) && s.profile) return s;
+      }
+    } catch (e) { /* storage blocked or corrupted: fall back to seed data */ }
+    var fresh = seed();
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh)); } catch (e) {}
+    return fresh;
+  }
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; }
+    catch (e) { toast('Could not save: browser storage is full or blocked. Changes will be lost on refresh.', 'error'); return false; }
+  }
+
+  /* ---------- 3. HELPERS ---------- */
+  var app = document.getElementById('app');
+
+  // Escape text before putting it in HTML. ALWAYS use this for user-written text.
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function slug(s) { return String(s).toLowerCase().replace(/\s+/g, '-'); }
+  function fmtDate(ts) {
+    return new Date(ts).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  function timeAgo(ts) {
+    var s = Math.max(1, Math.round((Date.now() - new Date(ts)) / 1000));
+    if (s < 60) return 'just now';
+    var m = Math.round(s / 60); if (m < 60) return m + ' min ago';
+    var h = Math.round(m / 60); if (h < 48) return h + ' h ago';
+    return Math.round(h / 24) + ' days ago';
+  }
+  function findIssue(id) { return state.issues.filter(function (i) { return i.id === id; })[0]; }
+  function initials(name) { return (String(name).trim()[0] || '?').toUpperCase(); }
+  function logActivity(text, issueId) {
+    state.activity.unshift({ ts: new Date().toISOString(), text: text, issueId: issueId });
+    state.activity = state.activity.slice(0, 40);
+  }
+
+  // Small inline SVG icon set (stroke icons, 24x24)
+  var ICONS = {
+    pin: '<path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+    up: '<path d="M12 19V5M5 12l7-7 7 7"/>',
+    comment: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+    shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    alert: '<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.01"/>',
+    check: '<path d="M5 12l5 5 9-10"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+  function icon(name, size) {
+    size = size || 18;
+    return '<svg class="icon" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (ICONS[name] || '') + '</svg>';
+  }
+
+  // Drawn sample illustrations for seed issues (no internet or image files needed)
+  function sampleArt(cat) {
+    var bg = { roads: '#dfe6ee', waste: '#e4ece4', lighting: '#1c2b4a', water: '#d9ecf2', campus: '#ece6d8' }[cat] || '#e6e6ee';
+    var shapes = {
+      roads: '<rect y="120" width="400" height="80" fill="#5b6679"/><path d="M0 162H400" stroke="#f7f5ef" stroke-dasharray="24 16" stroke-width="4"/><ellipse cx="230" cy="178" rx="58" ry="15" fill="#2b3548"/><path d="M185 172l-26-12M275 174l28-12M230 164l2-24" stroke="#2b3548" stroke-width="3" fill="none"/>',
+      waste: '<rect y="168" width="400" height="32" fill="#c3cfc3"/><rect x="110" y="82" width="70" height="88" rx="6" fill="#0f766e"/><rect x="104" y="74" width="82" height="12" rx="4" fill="#0b5a54"/><rect x="215" y="98" width="60" height="72" rx="6" fill="#245fa6"/><rect x="209" y="90" width="72" height="12" rx="4" fill="#1d4f87"/><circle cx="305" cy="164" r="12" fill="#8a8f99"/><circle cx="88" cy="166" r="9" fill="#8a8f99"/><circle cx="330" cy="170" r="7" fill="#a6aab2"/>',
+      lighting: '<rect y="170" width="400" height="30" fill="#111c33"/><rect x="95" y="60" width="8" height="112" fill="#8d99ae"/><rect x="95" y="56" width="34" height="10" rx="4" fill="#3b4a6b"/><rect x="195" y="60" width="8" height="112" fill="#8d99ae"/><rect x="195" y="56" width="34" height="10" rx="4" fill="#3b4a6b"/><rect x="295" y="60" width="8" height="112" fill="#8d99ae"/><rect x="295" y="56" width="34" height="10" rx="4" fill="#3b4a6b"/><circle cx="60" cy="34" r="2" fill="#fff"/><circle cx="350" cy="28" r="2" fill="#fff"/><circle cx="250" cy="40" r="1.5" fill="#fff"/>',
+      water: '<rect y="140" width="400" height="60" fill="#c8d4dc"/><rect x="40" y="96" width="320" height="16" rx="8" fill="#7b8794"/><path d="M200 112c-10 20-4 40 10 60" stroke="#3a9bc1" stroke-width="6" fill="none" stroke-linecap="round"/><ellipse cx="225" cy="180" rx="90" ry="12" fill="#6bb7d4"/>',
+      campus: '<rect y="160" width="400" height="40" fill="#d7cfbb"/><rect x="90" y="60" width="220" height="100" fill="#b9a98a"/><rect x="110" y="80" width="30" height="30" fill="#f7f5ef"/><rect x="185" y="80" width="30" height="30" fill="#f7f5ef"/><rect x="260" y="80" width="30" height="30" fill="#f7f5ef"/><path d="M170 160l60-34" stroke="#3b4a6b" stroke-width="6" stroke-linecap="round"/><path d="M230 126l16 6" stroke="#3b4a6b" stroke-width="6" stroke-linecap="round"/>'
+    };
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="' + bg + '"/>' + (shapes[cat] || '') + '</svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  /* --- Severity: a transparent, ILLUSTRATIVE rule (not official) ---
+     score = (safety x 3 + people affected x 2 + evidence quality x 1) / 30 x 100
+     Community support is deliberately NOT part of the score. */
+  function severityOf(i) {
+    var s = i.impact.safety, a = i.impact.affected;
+    var estimated = (i.evidenceRating == null);
+    var ev = estimated ? (i.image ? 2 : 1) : i.evidenceRating;
+    var score = Math.round((s * 3 + a * 2 + ev) / 30 * 100);
+    var label = score >= 80 ? 'Critical' : score >= 60 ? 'High' : score >= 40 ? 'Medium' : 'Low';
+    return { score: score, label: label, cls: 'b-sev-' + label.toLowerCase(), safety: s, affected: a, evidence: ev, estimated: estimated };
+  }
+
+  function badge(text, cls) { return '<span class="badge ' + cls + '">' + esc(text) + '</span>'; }
+  function verBadge(i) { return badge(i.verification, 'b-' + slug(i.verification)); }
+  function progBadge(i) { return i.progress ? badge(i.progress, 'b-' + slug(i.progress)) : ''; }
+  function sevBadge(i) { var s = severityOf(i); return badge('Severity: ' + s.label, s.cls); }
+
+  // Returns the best picture for an issue + a caption
+  function evidenceOf(i) {
+    if (i.image) return { src: i.image, caption: 'Evidence photo uploaded by the reporter' };
+    if (i.sampleArt) return { src: sampleArt(i.sampleArt), caption: 'Evidence submitted with the report' };
+    return null;
+  }
+
+  var toastTimer;
+  function toast(msg, kind) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show' + (kind === 'error' ? ' error' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = ''; }, 3800);
+  }
+
+  /* ---------- 4. VIEWS ---------- */
+  var current = { name: 'home', arg: null };
+  var feedF = { q: '', cat: 'all', status: 'all', sort: 'support' };
+  var authF = { q: '', cat: 'all', status: 'all', sort: 'severity' };
+  var pendingImage = null; // compressed data-URL for the report form
+
+  function issueCard(i) {
+    var ev = evidenceOf(i);
+    var thumb = ev
+      ? '<img src="' + esc(ev.src) + '" alt="" loading="lazy" data-fallback="1">'
+      : '<div class="thumb-empty">' + icon('image', 22) + '<span>No evidence photo yet</span></div>';
+    return '<article class="card issue-card">' +
+      '<div class="thumb">' + thumb + '<span class="thumb-sev">' + sevBadge(i) + '</span></div>' +
+      '<div class="card-body">' +
+      '<div class="badges">' + badge(CATEGORIES[i.category], 'b-cat') + verBadge(i) + progBadge(i) + '</div>' +
+      '<h3><a href="#/issue/' + i.id + '">' + esc(i.title) + '</a></h3>' +
+      '<p class="clamp">' + esc(i.description) + '</p>' +
+      '<p class="meta">' + icon('pin', 15) + '<span>' + esc(i.locality) + ', ' + esc(i.city) + ' · PIN ' + esc(i.pin) + '</span></p>' +
+      '<div class="card-foot">' +
+        '<span title="Community supporters">' + icon('up', 15) + i.supports + ' <span class="sr-only">supporters</span></span>' +
+        '<span title="Comments">' + icon('comment', 15) + i.comments.length + ' <span class="sr-only">comments</span></span>' +
+      '</div></div></article>';
+  }
+
+  // Decorative hero illustration (inline SVG, no image files needed)
+  var HERO_ART = '<svg class="hero-art" viewBox="0 0 420 180" role="img" aria-label="Illustration of a neighbourhood with a location pin and a looping arrow">' +
+    '<rect width="420" height="180" fill="#0f1f3d"/>' +
+    '<circle cx="352" cy="42" r="20" fill="#5fd0c4" opacity=".92"/>' +
+    '<g fill="#1b3560"><rect x="18" y="92" width="44" height="88"/><rect x="70" y="64" width="52" height="116"/><rect x="130" y="102" width="38" height="78"/><rect x="262" y="84" width="48" height="96"/><rect x="318" y="108" width="40" height="72"/><rect x="366" y="74" width="40" height="106"/></g>' +
+    '<g fill="#3a63a0" opacity=".8"><rect x="28" y="104" width="8" height="8"/><rect x="44" y="104" width="8" height="8"/><rect x="28" y="124" width="8" height="8"/><rect x="82" y="78" width="8" height="8"/><rect x="102" y="78" width="8" height="8"/><rect x="82" y="100" width="8" height="8"/><rect x="102" y="122" width="8" height="8"/><rect x="274" y="98" width="8" height="8"/><rect x="292" y="120" width="8" height="8"/><rect x="378" y="90" width="8" height="8"/><rect x="378" y="112" width="8" height="8"/></g>' +
+    '<rect y="156" width="420" height="24" fill="#0a1630"/>' +
+    '<path d="M150 150C150 96 206 72 252 96" fill="none" stroke="#5fd0c4" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="1 10"/>' +
+    '<path d="M246 78l14 17-21 5" fill="none" stroke="#5fd0c4" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="M196 24a22 22 0 0 1 22 22c0 17-22 40-22 40s-22-23-22-40a22 22 0 0 1 22-22z" fill="#ffffff"/>' +
+    '<circle cx="196" cy="46" r="8" fill="#0f766e"/>' +
+    '</svg>';
+
+  /* ----- Home ----- */
+  function renderHome() {
+    var total = state.issues.length;
+    var supports = state.issues.reduce(function (n, i) { return n + i.supports; }, 0);
+    var verified = state.issues.filter(function (i) { return i.verification === 'Verified'; }).length;
+    var resolved = state.issues.filter(function (i) { return i.progress === 'Resolved'; }).length;
+    var trending = state.issues.slice().sort(function (a, b) { return b.supports - a.supports; }).slice(0, 3);
+    var recent = state.activity.slice(0, 6);
+
+    app.innerHTML =
+      '<section class="hero" aria-labelledby="hero-title">' +
+        '<div><p class="eyebrow">Community-powered civic accountability</p>' +
+        '<h1 id="hero-title">From community voice to <span>real-world action.</span></h1>' +
+        '<p class="lead">Report a local problem with evidence, rally support, get it reviewed, and follow every step of the response in one public timeline.</p>' +
+        '<div class="hero-cta"><a class="btn btn-primary" href="#/report">' + icon('plus') + ' Report a problem</a>' +
+        '<a class="btn btn-secondary" href="#/feed">Browse community feed ' + icon('arrow') + '</a></div>' +
+        '</div>' +
+        '<div class="card hero-card" aria-label="How an issue travels">' + HERO_ART + '<h2 style="font-size:1.2rem">How an issue travels</h2>' +
+        '<ol class="journey">' +
+          '<li><strong>Report</strong><span class="muted small">Add location, PIN code and photo evidence.</span></li>' +
+          '<li><strong>Support</strong><span class="muted small">Neighbours back it. Support is not proof.</span></li>' +
+          '<li><strong>Verify</strong><span class="muted small">A moderator reviews the evidence.</span></li>' +
+          '<li><strong>Respond</strong><span class="muted small">Authority actions are tracked publicly.</span></li>' +
+        '</ol></div>' +
+      '</section>' +
+
+      '<section class="section" aria-labelledby="stats-title"><h2 class="sr-only" id="stats-title">Platform statistics</h2>' +
+        '<div class="stats">' +
+          stat(total, 'Reports filed', 'pin') + stat(supports.toLocaleString(), 'Community supports', 'up') +
+          stat(verified, 'Verified by moderators', 'shield') + stat(resolved, 'Marked resolved', 'check') +
+        '</div></section>' +
+
+      '<section class="section" aria-labelledby="trend-title"><div class="section-head"><h2 id="trend-title">Trending issues</h2>' +
+        '<a class="btn btn-ghost" href="#/feed">See all issues ' + icon('arrow', 16) + '</a></div>' +
+        '<div class="grid grid-cards">' + trending.map(issueCard).join('') + '</div>' +
+        '<p class="small muted" style="margin-top:10px">Trending is ranked by community support only. A popular report is not automatically verified.</p></section>' +
+
+      '<section class="cta-band section" aria-label="Report a problem"><div><h2>See something that needs fixing?</h2><p>Report it with a photo and your PIN code. Neighbours can back it, moderators review it, and every step stays visible.</p></div>' +
+        '<a class="btn btn-light" href="#/report">' + icon('plus') + ' Report a problem</a></section>' +
+
+      '<section class="section" aria-labelledby="act-title"><h2 id="act-title">Recent activity</h2>' +
+        '<div class="card">' + (recent.length ? '<ul class="activity">' + recent.map(function (a) {
+          return '<li><span class="dot" aria-hidden="true"></span><div><a href="#/issue/' + esc(a.issueId) + '">' + esc(a.text) + '</a><div class="small muted">' + timeAgo(a.ts) + '</div></div></li>';
+        }).join('') + '</ul>' : '<p class="muted" style="margin:0">No activity yet.</p>') + '</div></section>';
+  }
+  function stat(n, label, ic) {
+    return '<div class="stat">' + (ic ? '<span class="stat-ic">' + icon(ic, 22) + '</span>' : '') + '<div><div class="stat-num">' + n + '</div><div class="stat-label">' + label + '</div></div></div>';
+  }
+
+  /* ----- Feed ----- */
+  function selectOptions(map, selected, allLabel) {
+    var html = '<option value="all">' + allLabel + '</option>';
+    Object.keys(map).forEach(function (k) { html += '<option value="' + k + '"' + (selected === k ? ' selected' : '') + '>' + esc(map[k]) + '</option>'; });
+    return html;
+  }
+  function statusOptions(selected) {
+    return '<option value="all">All statuses</option>' + ALL_STATUSES.map(function (s) {
+      return '<option value="' + esc(s) + '"' + (selected === s ? ' selected' : '') + '>' + esc(s) + '</option>';
+    }).join('');
+  }
+
+  // Shared filtering used by feed and authority dashboard
+  function filterIssues(f) {
+    var tokens = f.q.toLowerCase().split(/\s+/).filter(Boolean);
+    var list = state.issues.filter(function (i) {
+      if (f.cat !== 'all' && i.category !== f.cat) return false;
+      if (f.status !== 'all' && i.verification !== f.status && i.progress !== f.status) return false;
+      var hay = [i.title, i.description, i.locality, i.city, i.pin, CATEGORIES[i.category]].join(' ').toLowerCase();
+      return tokens.every(function (t) { return hay.indexOf(t) !== -1; }); // every word must match (PIN, locality, city, text)
+    });
+    list.sort(function (a, b) {
+      if (f.sort === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
+      if (f.sort === 'severity') return severityOf(b).score - severityOf(a).score;
+      return b.supports - a.supports;
+    });
+    return list;
+  }
+
+  function renderFeed() {
+    app.innerHTML =
+      '<h1 style="font-size:2.2rem">Community feed</h1>' +
+      '<p class="lead" style="margin-bottom:22px">Search by PIN code, locality, city or keyword, then narrow by category and status.</p>' +
+      '<div class="toolbar" role="search">' +
+        '<div class="field"><label for="f-q">Search</label><div class="search-wrap">' + icon('search') + '<input type="search" id="f-q" data-feed="q" placeholder="e.g. 411045, Canal Road, pothole" value="' + esc(feedF.q) + '"></div></div>' +
+        '<div class="field"><label for="f-cat">Category</label><select id="f-cat" data-feed="cat">' + selectOptions(CATEGORIES, feedF.cat, 'All categories') + '</select></div>' +
+        '<div class="field"><label for="f-status">Status</label><select id="f-status" data-feed="status">' + statusOptions(feedF.status) + '</select></div>' +
+        '<div class="field"><label for="f-sort">Sort by</label><select id="f-sort" data-feed="sort">' +
+          '<option value="support"' + (feedF.sort === 'support' ? ' selected' : '') + '>Most supported</option>' +
+          '<option value="newest"' + (feedF.sort === 'newest' ? ' selected' : '') + '>Newest</option>' +
+          '<option value="severity"' + (feedF.sort === 'severity' ? ' selected' : '') + '>Highest severity</option></select></div>' +
+        '<button class="btn btn-secondary" type="button" data-action="clear-feed">Clear</button>' +
+      '</div>' +
+      '<p class="small muted" id="feed-count" aria-live="polite"></p>' +
+      '<div id="feed-results"></div>';
+    fillFeed();
+  }
+  function fillFeed() {
+    var list = filterIssues(feedF);
+    document.getElementById('feed-count').textContent = list.length + (list.length === 1 ? ' issue found' : ' issues found');
+    document.getElementById('feed-results').innerHTML = list.length
+      ? '<div class="grid grid-cards">' + list.map(issueCard).join('') + '</div>'
+      : '<div class="empty"><h3>No matching issues</h3><p>Try a different PIN code, locality or filter — or be the first to report it.</p><a class="btn btn-primary" href="#/report">' + icon('plus') + ' Report a problem</a></div>';
+  }
+
+  /* ----- Report form ----- */
+  function renderReport() {
+    pendingImage = null;
+    app.innerHTML =
+      '<h1 style="font-size:2.2rem">Report a problem</h1>' +
+      '<p class="lead">Be specific and add a photo if you can — clear evidence makes review faster.</p>' +
+      '<form class="card" id="report-form" novalidate data-form="report" style="margin-top:20px">' +
+        '<div id="report-errors" class="error-summary" role="alert" hidden></div>' +
+        '<div class="form-grid">' +
+          field('r-title', 'Title', '<input type="text" id="r-title" name="title" maxlength="100" autocomplete="off" aria-describedby="e-title h-title" required><span class="hint" id="h-title">5–100 characters</span>', 'title', true) +
+          field('r-cat', 'Category', '<select id="r-cat" name="category" aria-describedby="e-category" required><option value="">Choose a category…</option>' + Object.keys(CATEGORIES).map(function (k) { return '<option value="' + k + '">' + CATEGORIES[k] + '</option>'; }).join('') + '</select>', 'category') +
+          field('r-desc', 'Description', '<textarea id="r-desc" name="description" maxlength="1000" aria-describedby="e-description h-desc" required></textarea><span class="hint" id="h-desc">What is wrong, since when, and who is affected? 20–1000 characters.</span>', 'description', true) +
+          field('r-locality', 'Locality / landmark', '<input type="text" id="r-locality" name="locality" maxlength="80" autocomplete="off" aria-describedby="e-locality" required>', 'locality') +
+          field('r-city', 'City', '<input type="text" id="r-city" name="city" maxlength="60" autocomplete="off" aria-describedby="e-city" required>', 'city') +
+          field('r-pin', 'PIN code', '<input type="text" id="r-pin" name="pin" inputmode="numeric" maxlength="6" autocomplete="off" aria-describedby="e-pin h-pin" required><span class="hint" id="h-pin">6-digit Indian PIN code. Typing a PIN does not prove where you are.</span>', 'pin') +
+          field('r-safety', 'Safety risk', '<select id="r-safety" name="safety" aria-describedby="e-safety">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (n === 3 ? ' selected' : '') + '>' + n + ' — ' + SAFETY_LABELS[n] + '</option>'; }).join('') + '</select>', 'safety') +
+          field('r-affected', 'People affected (impact)', '<select id="r-affected" name="affected" aria-describedby="e-affected">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (n === 3 ? ' selected' : '') + '>' + n + ' — ' + AFFECTED_LABELS[n] + '</option>'; }).join('') + '</select>', 'affected') +
+          field('r-name', 'Your name (optional)', '<input type="text" id="r-name" name="name" maxlength="40" autocomplete="off" aria-describedby="h-name" value="' + esc(session ? session.name : '') + '"><span class="hint" id="h-name">Leave blank to post as “Anonymous community member”. Don’t enter private details.</span>', 'name') +
+          '<div class="field full"><label for="r-image">Evidence image (optional)</label>' +
+            '<input type="file" id="r-image" accept="image/*" aria-describedby="e-image h-image"><span class="hint" id="h-image">JPG, PNG or WebP under 8 MB. Avoid faces, number plates and private information.</span>' +
+            '<p class="field-error" id="e-image" hidden></p><div id="image-preview"></div></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:22px"><button class="btn btn-primary" type="submit">Submit report</button><a class="btn btn-secondary" href="#/feed">Cancel</a></div>' +
+      '</form>';
+  }
+  function field(id, label, control, key, full) {
+    return '<div class="field' + (full ? ' full' : '') + '"><label for="' + id + '">' + label + '</label>' + control + '<p class="field-error" id="e-' + key + '" hidden></p></div>';
+  }
+
+  /* ----- Issue detail ----- */
+  function renderIssue(id) {
+    var i = findIssue(id);
+    if (!i) { renderNotFound(); return; }
+    var sev = severityOf(i);
+    var ev = evidenceOf(i);
+    var supported = state.profile.supported.indexOf(i.id) !== -1;
+    var flagged = state.profile.flagged.indexOf(i.id) !== -1;
+    var comments = i.comments.slice().sort(function (a, b) { return new Date(a.ts) - new Date(b.ts); });
+
+    app.innerHTML =
+      '<p><a href="#/feed" class="btn btn-ghost" style="padding-left:0">' + icon('back', 16) + ' Back to feed</a></p>' +
+      '<div class="detail"><div>' +
+        '<div class="badges">' + badge(CATEGORIES[i.category], 'b-cat') + verBadge(i) + progBadge(i) + sevBadge(i) + '</div>' +
+        '<h1 style="font-size:clamp(1.7rem,3.5vw,2.4rem)">' + esc(i.title) + '</h1>' +
+        '<p class="meta" style="margin-bottom:6px">' + icon('pin', 15) + '<span>' + esc(i.locality) + ', ' + esc(i.city) + ' · PIN ' + esc(i.pin) + '</span></p>' +
+        '<p class="small muted">Reported by ' + esc(i.reporter) + ' · ' + fmtDate(i.createdAt) + '</p>' +
+        (ev
+          ? '<figure class="evidence" style="margin:18px 0"><img src="' + esc(ev.src) + '" alt="Evidence for: ' + esc(i.title) + '" data-fallback="1"><figcaption>' + esc(ev.caption) + '</figcaption></figure>'
+          : '<div class="notice warn" style="margin:18px 0">' + icon('alert', 16) + ' No evidence image was attached. Reports with clear evidence are easier to verify.</div>') +
+        '<h2>Description</h2><p style="white-space:pre-wrap">' + esc(i.description) + '</p>' +
+
+        '<section class="section" aria-labelledby="tl-title"><h2 id="tl-title">Status timeline</h2><div class="card"><ol class="timeline">' +
+          i.timeline.slice().sort(function (a, b) { return new Date(a.ts) - new Date(b.ts); }).map(function (t) {
+            return '<li><div class="t-actor">' + esc(t.actor) + '</div><strong>' + esc(t.label) + '</strong><div class="t-time">' + fmtDate(t.ts) + '</div>' + (t.note ? '<p class="t-note">' + esc(t.note) + '</p>' : '') + '</li>';
+          }).join('') + '</ol>' +
+          '</div></section>' +
+
+        '<section class="section" aria-labelledby="cm-title"><h2 id="cm-title">Discussion (' + comments.length + ')</h2><div class="card">' +
+          (comments.length ? comments.map(function (c) {
+            return '<div class="comment"><div class="avatar" aria-hidden="true">' + esc(initials(c.name)) + '</div><div><strong>' + esc(c.name) + '</strong> <span class="small muted">· ' + timeAgo(c.ts) + '</span><p>' + esc(c.text) + '</p></div></div>';
+          }).join('') : '<p class="muted">No comments yet. Add useful details, such as when you noticed the problem.</p>') +
+          (isAuthority() ? '<div class="notice info" style="margin-top:16px">Authorities respond through <strong>Review / respond</strong>, which posts to the public timeline above. Public discussion is for civilians.</div>' :
+          '<form id="comment-form" data-form="comment" data-id="' + i.id + '" novalidate style="margin-top:16px;display:grid;gap:12px">' +
+            '<div class="field"><label for="c-name">Name (optional)</label><input type="text" id="c-name" maxlength="40" autocomplete="off" value="' + esc(session ? session.name : '') + '"></div>' +
+            '<div class="field"><label for="c-text">Add a comment</label><textarea id="c-text" maxlength="500" aria-describedby="e-ctext" style="min-height:84px"></textarea><p class="field-error" id="e-ctext" hidden></p></div>' +
+            '<div><button class="btn btn-primary btn-sm" type="submit">Post comment</button></div>' +
+          '</form>') + '</div></section>' +
+      '</div>' +
+
+      '<aside class="aside-stack" aria-label="Issue summary">' +
+        (isAuthority()
+          ? '<div class="card"><div class="support-count" aria-live="polite">' + i.supports + '</div><p class="muted small" style="margin:0">community supporters (read-only for authorities)</p>' +
+            (i.flags >= 2 ? '<p class="small" style="margin:10px 0 0;color:var(--warn-ink)">Flagged ' + i.flags + ' times for moderator attention.</p>' : '') + '</div>'
+          : '<div class="card"><div class="support-count" aria-live="polite">' + i.supports + '</div><p class="muted small">community supporters</p>' +
+          '<button class="btn ' + (supported ? 'btn-secondary is-active' : 'btn-primary') + '" type="button" id="support-btn" data-action="support" data-id="' + i.id + '" aria-pressed="' + supported + '" style="width:100%;justify-content:center">' + icon(supported ? 'check' : 'up') + (supported ? ' You supported this' : ' Support this issue') + '</button>' +
+          '<p class="small muted" style="margin:10px 0 0">One support per person. Support shows community concern — it does <strong>not</strong> verify an issue.</p>' +
+          '<button class="btn btn-ghost btn-sm" type="button" id="flag-btn" data-action="flag" data-id="' + i.id + '"' + (flagged ? ' disabled' : '') + ' style="margin-top:8px">' + icon('flag', 16) + (flagged ? ' You flagged this report' : ' Flag this report') + '</button>' +
+          (i.flags >= 2 ? '<p class="small" style="margin:6px 0 0;color:var(--warn-ink)">This report has been flagged ' + i.flags + ' times for moderator attention.</p>' : '') +
+        '</div>') +
+
+        '<div class="card"><h3>' + icon('shield', 18) + ' Verification</h3><div class="badges">' + verBadge(i) + '</div><p class="small" style="margin:0">' + verificationText(i.verification) + '</p></div>' +
+
+        '<div class="card"><h3>Severity</h3><div class="score">' + sev.score + '<span class="muted" style="font-size:1rem"> / 100 · ' + sev.label + '</span></div>' +
+          factor('Safety risk (× 3)', sev.safety, SAFETY_LABELS[sev.safety]) +
+          factor('People affected (× 2)', sev.affected, AFFECTED_LABELS[sev.affected]) +
+          factor('Evidence quality (× 1)', sev.evidence, EVIDENCE_LABELS[sev.evidence] + (sev.estimated ? ' (auto-estimate)' : '')) +
+          '<p class="small muted" style="margin:12px 0 0">Community support is not included in the score.</p></div>' +
+
+        (isAuthority() ? '<button class="btn btn-primary" type="button" data-action="manage" data-id="' + i.id + '" style="justify-content:center">Review / respond to this report</button>' : '') +
+      '</aside></div>';
+  }
+  function factor(label, val, text) {
+    return '<div class="factor"><div class="factor-top"><span>' + label + '</span><strong>' + val + '/5</strong></div><div class="bar" role="img" aria-label="' + esc(label) + ' ' + val + ' out of 5"><i style="width:' + (val / 5 * 100) + '%"></i></div><div class="small muted">' + esc(text) + '</div></div>';
+  }
+  function verificationText(v) {
+    return {
+      'Submitted': 'Waiting for a moderator to review the evidence. Support count does not change this.',
+      'Under Review': 'A moderator is checking the evidence and may ask for more details.',
+      'Verified': 'A moderator judged the evidence credible. Verified does not mean fixed.',
+      'Insufficient Evidence': 'The evidence was not enough to verify. Add details in a new report or comment.'
+    }[v];
+  }
+
+  /* ----- Authority dashboard ----- */
+  function renderAuthority() {
+    if (!isAuthority()) { navigate('#/home'); return; }
+    var all = state.issues;
+    var needsReview = all.filter(function (i) { return i.verification === 'Submitted' || i.verification === 'Under Review'; }).length;
+    var awaiting = all.filter(function (i) { return i.verification === 'Verified' && !i.progress; }).length;
+    var active = all.filter(function (i) { return i.progress === 'Forwarded' || i.progress === 'In Progress'; }).length;
+    var done = all.filter(function (i) { return i.progress === 'Resolved'; }).length;
+
+    app.innerHTML =
+      '<h1 style="font-size:2.2rem">Authority dashboard</h1>' +
+      '<div class="mini-stats">' + stat(needsReview, 'Need evidence review', 'alert') + stat(awaiting, 'Verified, awaiting action', 'shield') + stat(active, 'Forwarded / in progress', 'clock') + stat(done, 'Resolved', 'check') + '</div>' +
+      '<div class="toolbar" role="search">' +
+        '<div class="field"><label for="a-q">Search</label><div class="search-wrap">' + icon('search') + '<input type="search" id="a-q" data-auth="q" placeholder="PIN, locality, keyword" value="' + esc(authF.q) + '"></div></div>' +
+        '<div class="field"><label for="a-cat">Category</label><select id="a-cat" data-auth="cat">' + selectOptions(CATEGORIES, authF.cat, 'All categories') + '</select></div>' +
+        '<div class="field"><label for="a-status">Status</label><select id="a-status" data-auth="status">' + statusOptions(authF.status) + '</select></div>' +
+        '<div class="field"><label for="a-sort">Sort by</label><select id="a-sort" data-auth="sort">' +
+          '<option value="severity"' + (authF.sort === 'severity' ? ' selected' : '') + '>Highest severity</option>' +
+          '<option value="support"' + (authF.sort === 'support' ? ' selected' : '') + '>Most supported</option>' +
+          '<option value="newest"' + (authF.sort === 'newest' ? ' selected' : '') + '>Newest</option></select></div>' +
+        '<button class="btn btn-secondary" type="button" data-action="clear-auth">Clear</button>' +
+      '</div>' +
+      '<div id="auth-results"></div>';
+    fillAuthority();
+  }
+  function fillAuthority() {
+    var box = document.getElementById('auth-results');
+    if (!box) return;
+    var list = filterIssues(authF);
+    if (!list.length) { box.innerHTML = '<div class="empty"><h3>No issues match these filters</h3><p>Clear the filters to see all reports.</p></div>'; return; }
+    box.innerHTML = '<div class="table-wrap"><table><caption class="sr-only">Issues for authority review</caption><thead><tr><th scope="col">Issue</th><th scope="col">Priority</th><th scope="col">Public support</th><th scope="col">Verification</th><th scope="col">Progress</th><th scope="col">Evidence</th><th scope="col">Action</th></tr></thead><tbody>' +
+      list.map(function (i) {
+        var s = severityOf(i);
+        return '<tr>' +
+          '<td data-label="Issue"><span><a class="title" href="#/issue/' + i.id + '" style="text-decoration:none;color:var(--navy)">' + esc(i.title) + '</a><span class="small muted">' + esc(i.locality) + ' · PIN ' + esc(i.pin) + '</span></span></td>' +
+          '<td data-label="Priority"><span>' + badge(s.label + ' · ' + s.score, s.cls) + '</span></td>' +
+          '<td data-label="Support"><strong>' + i.supports + '</strong></td>' +
+          '<td data-label="Verification"><span>' + verBadge(i) + '</span></td>' +
+          '<td data-label="Progress"><span>' + (i.progress ? progBadge(i) : '<span class="muted small">Not started</span>') + '</span></td>' +
+          '<td data-label="Evidence"><span class="small">' + (i.evidenceRating != null ? EVIDENCE_LABELS[i.evidenceRating] : (i.image ? 'Photo, not rated' : 'Not rated')) + '</span></td>' +
+          '<td data-label="Action"><button class="btn btn-secondary btn-sm" type="button" data-action="manage" data-id="' + i.id + '">Review / respond</button></td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  /* ----- Manage dialog (evidence review + response) ----- */
+  var dlg = document.getElementById('manage-dialog');
+  function renderManage(id) {
+    var i = findIssue(id);
+    if (!i) return;
+    var ev = evidenceOf(i);
+    var rank = i.progress ? PROGRESS.indexOf(i.progress) : -1;
+    var nextOptions = PROGRESS.filter(function (p, idx) { return idx > rank; });
+    var progressHtml;
+    if (i.verification !== 'Verified') {
+      progressHtml = '<div class="notice info">Authority actions unlock after a moderator marks this report <strong>Verified</strong>. Support count alone is never enough.</div>';
+    } else if (i.progress === 'Resolved') {
+      progressHtml = '<div class="notice ok">This report is marked Resolved with a recorded resolution note.</div>';
+    } else {
+      progressHtml = '<form data-form="progress" data-id="' + i.id + '" novalidate style="display:grid;gap:12px">' +
+        '<div class="field"><label for="m-prog">New progress status</label><select id="m-prog">' + nextOptions.map(function (p) { return '<option value="' + p + '">' + p + '</option>'; }).join('') + '</select></div>' +
+        '<div class="field"><label for="m-resp">Response to the public</label><textarea id="m-resp" maxlength="600" aria-describedby="m-err2" style="min-height:90px"></textarea><span class="hint">Required. If you choose “Resolved”, this becomes the public resolution note — describe what was done.</span><p class="field-error" id="m-err2" role="alert" hidden></p></div>' +
+        '<div><button class="btn btn-primary btn-sm" type="submit">Post response</button></div></form>';
+    }
+
+    dlg.innerHTML =
+      '<div class="dialog-head"><div><p class="eyebrow" style="margin-bottom:4px">Authority workspace</p><h2 id="md-title" style="margin:0;font-size:1.3rem">' + esc(i.title) + '</h2>' +
+        '<div class="badges" style="margin:10px 0 0">' + verBadge(i) + progBadge(i) + sevBadge(i) + '</div></div>' +
+        '<button class="btn btn-secondary btn-sm" type="button" data-action="close-dialog" aria-label="Close dialog">' + icon('x', 16) + ' Close</button></div>' +
+      '<div class="dialog-body">' +
+        '<p class="small muted" style="margin:0">' + icon('pin', 14) + ' ' + esc(i.locality) + ', ' + esc(i.city) + ' · PIN ' + esc(i.pin) + ' · ' + i.supports + ' public supporters (support is not verification)</p>' +
+        (ev ? '<figure class="evidence" style="margin:0"><img src="' + esc(ev.src) + '" alt="Evidence for ' + esc(i.title) + '" data-fallback="1" style="max-height:220px"><figcaption>' + esc(ev.caption) + '</figcaption></figure>' : '<div class="notice warn">No evidence image attached.</div>') +
+        '<section class="card" aria-labelledby="m-h1"><h3 id="m-h1">1. Evidence review</h3>' +
+          '<form data-form="verify" data-id="' + i.id + '" novalidate style="display:grid;gap:12px">' +
+            '<div class="form-grid"><div class="field"><label for="m-ver">Verification status</label><select id="m-ver">' + ['Under Review', 'Verified', 'Insufficient Evidence'].map(function (v) { return '<option' + (i.verification === v ? ' selected' : '') + '>' + v + '</option>'; }).join('') + '</select></div>' +
+            '<div class="field"><label for="m-evq">Evidence quality</label><select id="m-evq">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + ((i.evidenceRating != null ? i.evidenceRating : (i.image ? 2 : 1)) === n ? ' selected' : '') + '>' + n + ' — ' + EVIDENCE_LABELS[n] + '</option>'; }).join('') + '</select></div></div>' +
+            '<div class="field"><label for="m-note">Review note</label><textarea id="m-note" maxlength="400" aria-describedby="m-err1" style="min-height:72px"></textarea><span class="hint">Required for “Insufficient Evidence”; recommended otherwise.</span><p class="field-error" id="m-err1" role="alert" hidden></p></div>' +
+            '<div><button class="btn btn-primary btn-sm" type="submit">Save review</button></div></form></section>' +
+        '<section class="card" aria-labelledby="m-h2"><h3 id="m-h2">2. Authority response and progress</h3>' + progressHtml + '</section>' +
+      '</div>';
+  }
+
+  function renderNotFound() {
+    app.innerHTML = '<div class="empty" style="margin-top:20px"><h1 style="font-size:1.8rem">Page not found</h1><p>That issue or page does not exist.</p><a class="btn btn-primary" href="#/feed">Go to community feed</a></div>';
+  }
+
+  /* ---------- 5. ROUTER ---------- */
+  function parseHash(h) {
+    var parts = (h || location.hash || '#/home').replace(/^#\/?/, '').split('/');
+    return { name: parts[0] || 'home', arg: parts[1] || null };
+  }
+  var TITLES = { login: 'Sign in', home: 'Home', feed: 'Community feed', report: 'Report a problem', authority: 'Authority dashboard', issue: 'Issue details' };
+
+  function renderView(isNavigation) {
+    // Nobody signed in -> always show the sign-in screen
+    if (!session) { showLogin(); return; }
+    var v = current;
+    // Role guards: each role only sees its own pages
+    if (v.name === 'login') { navigate(isAuthority() ? '#/authority' : '#/home'); return; }
+    if (isAuthority() && (v.name === 'home' || v.name === 'report')) { navigate('#/authority'); return; }
+    if (!isAuthority() && v.name === 'authority') { toast('The dashboard is only for Authority accounts.', 'error'); navigate('#/home'); return; }
+    document.body.classList.remove('auth-mode');
+    if (v.name === 'home') renderHome();
+    else if (v.name === 'feed') renderFeed();
+    else if (v.name === 'report') renderReport();
+    else if (v.name === 'issue') renderIssue(v.arg);
+    else if (v.name === 'authority') renderAuthority();
+    else renderNotFound();
+    updateChrome();
+    document.title = (TITLES[v.name] || 'Not found') + ' · CivicLoop';
+    if (isNavigation) {
+      window.scrollTo(0, 0);
+      var h = app.querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+  }
+  // Go to a page. We render directly (not only via the URL hash) so it works
+  // even where the hash can't change, e.g. some embedded previews.
+  function navigate(hash) {
+    current = parseHash(hash);
+    try { if (location.hash !== hash) location.hash = hash; } catch (e) { /* ignore */ }
+    closeMenu();
+    renderView(true);
+  }
+  // Browser back/forward buttons (only re-render if the page really changed)
+  function onHashChange() {
+    if (!session) { showLogin(); return; }
+    var p = parseHash();
+    if (p.name === current.name && p.arg === current.arg) return;
+    current = p;
+    closeMenu();
+    renderView(true);
+  }
+
+  // Header nav highlight, authority toggle and banner
+  function updateChrome() {
+    var navKey = current.name === 'issue' ? 'feed' : current.name;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (a) {
+      if (a.getAttribute('data-nav') === navKey) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    if (!session) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-for]'), function (el) {
+      var f = el.getAttribute('data-for');
+      el.hidden = !(f === 'both' || f === session.role);
+    });
+    var chip = document.getElementById('user-chip');
+    chip.className = 'user-chip' + (isAuthority() ? ' is-authority' : '');
+    chip.innerHTML = '<span class="avatar" aria-hidden="true">' + esc(initials(session.name)) + '</span>' + esc(session.name) + ' <small>' + (isAuthority() ? 'Authority' : 'Civilian') + '</small>';
+    document.querySelector('.brand').setAttribute('href', isAuthority() ? '#/authority' : '#/home');
+  }
+  function closeMenu() {
+    document.getElementById('main-nav').classList.remove('open');
+    document.getElementById('menu-btn').setAttribute('aria-expanded', 'false');
+  }
+
+  /* ---------- 6. ACTIONS ---------- */
+  function showErr(id, msg) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg || '';
+    el.hidden = !msg;
+  }
+  function setInvalid(id, bad) {
+    var el = document.getElementById(id);
+    if (el) { if (bad) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid'); }
+  }
+
+  // Shrink uploaded photos so localStorage doesn't fill up
+  function readImage(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function () {
+        var img = new Image();
+        img.onerror = reject;
+        img.onload = function () {
+          var max = 900, scale = Math.min(1, max / Math.max(img.width, img.height));
+          var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+          var c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/jpeg', 0.72));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function handleImageChange(input) {
+    var file = input.files && input.files[0];
+    var prev = document.getElementById('image-preview');
+    pendingImage = null; prev.innerHTML = ''; showErr('e-image', '');
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { showErr('e-image', 'Please choose an image file (JPG, PNG or WebP).'); input.value = ''; return; }
+    if (file.size > 8 * 1024 * 1024) { showErr('e-image', 'That image is larger than 8 MB. Please choose a smaller one.'); input.value = ''; return; }
+    readImage(file).then(function (dataUrl) {
+      pendingImage = dataUrl;
+      prev.innerHTML = '<div class="preview" style="margin-top:8px"><img src="' + dataUrl + '" alt="Preview of the image you selected"></div>' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-action="remove-image">Remove image</button>';
+    }).catch(function () { showErr('e-image', 'That image could not be read. Try a different file.'); input.value = ''; });
+  }
+
+  function submitReport(form) {
+    var v = function (id) { return document.getElementById(id).value.trim(); };
+    var data = { title: v('r-title'), category: v('r-cat'), description: v('r-desc'), locality: v('r-locality'), city: v('r-city'), pin: v('r-pin') };
+    var errors = {}; // key -> message
+    if (data.title.length < 5) errors.title = 'Enter a title of at least 5 characters.';
+    if (!data.category) errors.category = 'Choose a category.';
+    if (data.description.length < 20) errors.description = 'Describe the problem in at least 20 characters.';
+    if (!data.locality) errors.locality = 'Enter the locality or landmark.';
+    if (!data.city) errors.city = 'Enter the city.';
+    if (!/^[1-9][0-9]{5}$/.test(data.pin)) errors.pin = 'Enter a valid 6-digit PIN code (it cannot start with 0).';
+
+    var ids = { title: 'r-title', category: 'r-cat', description: 'r-desc', locality: 'r-locality', city: 'r-city', pin: 'r-pin' };
+    var keys = Object.keys(ids), firstBad = null, msgs = [];
+    keys.forEach(function (k) {
+      showErr('e-' + k, errors[k]); setInvalid(ids[k], !!errors[k]);
+      if (errors[k]) { msgs.push(errors[k]); if (!firstBad) firstBad = ids[k]; }
+    });
+    var summary = document.getElementById('report-errors');
+    if (msgs.length) {
+      summary.hidden = false;
+      summary.textContent = 'Please fix ' + msgs.length + (msgs.length === 1 ? ' problem' : ' problems') + ' below before submitting.';
+      document.getElementById(firstBad).focus();
+      return;
+    }
+    summary.hidden = true;
+
+    var now = new Date().toISOString();
+    var issue = {
+      id: 'ci-' + Date.now().toString(36),
+      title: data.title, description: data.description, category: data.category,
+      locality: data.locality, city: data.city, pin: data.pin,
+      impact: { safety: Number(document.getElementById('r-safety').value), affected: Number(document.getElementById('r-affected').value) },
+      evidenceRating: null, image: pendingImage, sampleArt: null,
+      reporter: v('r-name') || 'Anonymous community member', createdAt: now, supports: 0, flags: 0,
+      verification: 'Submitted', progress: null,
+      timeline: [{ ts: now, type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' }],
+      comments: []
+    };
+    state.issues.unshift(issue);
+    logActivity('New report: ' + issue.title, issue.id);
+    if (!save()) { /* toast already shown; keep in memory for this session */ }
+    pendingImage = null;
+    toast('Report submitted. It now awaits moderator review.');
+    navigate('#/issue/' + issue.id);
+  }
+
+  function addComment(form) {
+    var i = findIssue(form.getAttribute('data-id'));
+    var text = document.getElementById('c-text').value.trim();
+    var name = document.getElementById('c-name').value.trim() || 'Anonymous community member';
+    if (text.length < 2) { showErr('e-ctext', 'Write at least 2 characters.'); setInvalid('c-text', true); document.getElementById('c-text').focus(); return; }
+    i.comments.push({ id: 'c' + Date.now().toString(36), name: name, text: text, ts: new Date().toISOString() });
+    logActivity(name + ' commented on ' + i.title, i.id);
+    save();
+    renderView(false);
+    toast('Comment posted.');
+    var box = document.getElementById('c-text'); if (box) box.focus();
+  }
+
+  function supportIssue(id) {
+    var i = findIssue(id);
+    if (!i) return;
+    if (state.profile.supported.indexOf(id) !== -1) { toast('You have already supported this issue.'); return; }
+    i.supports += 1;
+    state.profile.supported.push(id);
+    logActivity('A neighbour supported ' + i.title, id);
+    save();
+    renderView(false);
+    toast('Thanks for your support. Remember: support is not verification.');
+    var b = document.getElementById('support-btn'); if (b) b.focus();
+  }
+
+  // In-page confirmation dialog (native confirm() is blocked in some embedded previews)
+  var cdlg = document.getElementById('confirm-dialog');
+  var confirmResolve = null;
+  function askConfirm(title, text, okLabel, danger) {
+    if (typeof cdlg.showModal !== 'function') return Promise.resolve(window.confirm(text));
+    return new Promise(function (resolve) {
+      document.getElementById('cf-title').textContent = title;
+      document.getElementById('cf-text').textContent = text;
+      var ok = document.getElementById('confirm-ok');
+      ok.textContent = okLabel;
+      ok.className = 'btn ' + (danger ? 'btn-danger-solid' : 'btn-primary');
+      confirmResolve = resolve;
+      cdlg.showModal();
+      document.getElementById('confirm-cancel').focus();
+    });
+  }
+  function finishConfirm(answer) {
+    var r = confirmResolve; confirmResolve = null;
+    if (cdlg.open) cdlg.close();
+    if (r) r(answer);
+  }
+
+  function flagIssue(id) {
+    var i = findIssue(id);
+    if (!i || state.profile.flagged.indexOf(id) !== -1) return;
+    askConfirm('Flag this report?', 'Flag it for moderator attention if it looks like spam, a duplicate or misleading.', 'Flag report').then(function (yes) {
+      if (!yes) return;
+      i.flags += 1;
+      state.profile.flagged.push(id);
+      logActivity('A report was flagged for review: ' + i.title, id);
+      save();
+      renderView(false);
+      toast('Report flagged for moderator review.');
+      var fb = document.getElementById('flag-btn'); if (fb) fb.focus();
+    });
+  }
+
+  function saveVerification(form) {
+    var i = findIssue(form.getAttribute('data-id'));
+    var status = document.getElementById('m-ver').value;
+    var rating = Number(document.getElementById('m-evq').value);
+    var note = document.getElementById('m-note').value.trim();
+    if (status === 'Insufficient Evidence' && note.length < 5) { showErr('m-err1', 'Add a short note explaining why the evidence is insufficient.'); return; }
+    if (i.progress && status !== 'Verified') { showErr('m-err1', 'Authority progress has already started, so this report must stay Verified.'); return; }
+    showErr('m-err1', '');
+    i.verification = status;
+    i.evidenceRating = rating;
+    i.timeline.push({ ts: new Date().toISOString(), type: 'verification', label: 'Verification: ' + status, actor: 'Moderator', note: note });
+    logActivity('Verification: ' + status + ' — ' + i.title, i.id);
+    save();
+    renderManage(i.id);
+    toast('Review saved. The public timeline has been updated.');
+  }
+
+  function saveProgress(form) {
+    var i = findIssue(form.getAttribute('data-id'));
+    var status = document.getElementById('m-prog').value;
+    var resp = document.getElementById('m-resp').value.trim();
+    if (i.verification !== 'Verified') { showErr('m-err2', 'Only Verified reports can receive authority progress updates.'); return; }
+    if (resp.length < 10) { showErr('m-err2', status === 'Resolved' ? 'A resolution note of at least 10 characters is required to mark this Resolved.' : 'Enter a response of at least 10 characters.'); document.getElementById('m-resp').focus(); return; }
+    var rank = i.progress ? PROGRESS.indexOf(i.progress) : -1;
+    if (PROGRESS.indexOf(status) <= rank) { showErr('m-err2', 'Progress cannot move backwards.'); return; }
+    showErr('m-err2', '');
+    i.progress = status;
+    i.timeline.push({ ts: new Date().toISOString(), type: 'progress', label: 'Progress: ' + status, actor: 'Authority', note: resp });
+    logActivity('Progress: ' + status + ' — ' + i.title, i.id);
+    save();
+    renderManage(i.id);
+    toast('Response posted to the public timeline.');
+  }
+
+  function openManage(id) {
+    renderManage(id);
+    if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+  }
+
+  /* ---------- SIGN-IN / SIGN-OUT (demo only, not real security) ---------- */
+  var SEED_ACCOUNTS = {
+    citizen: { pw: 'demo123', role: 'user', name: 'Citizen' },
+    officer: { pw: 'demo123', role: 'authority', name: 'Officer' }
+  };
+  var loginMode = 'signin';
+  var $ = function (id) { return document.getElementById(id); };
+
+  function loadAccounts() { try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || {}; } catch (e) { return {}; } }
+  function saveAccounts(a) { try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(a)); } catch (e) {} }
+  function pickedRole() { return document.querySelector('#login-form input[name=role]:checked').value; }
+  function loginMsg(text, ok) {
+    var m = $('lg-msg');
+    m.textContent = text || '';
+    m.hidden = !text;
+    m.className = ok ? 'notice ok' : 'error-summary';
+    m.style.margin = '0';
+  }
+  function setLoginMode(mode) {
+    loginMode = mode;
+    var up = mode === 'signup';
+    $('name-field').hidden = !up;
+    $('lg-go').textContent = up ? 'Create account' : 'Sign in';
+    $('lg-toggle').textContent = up ? 'Back to sign in' : 'Create a test account';
+    $('lg-pw').setAttribute('autocomplete', up ? 'new-password' : 'current-password');
+    loginMsg('');
+  }
+
+  // Shows the sign-in screen and hides the rest of the app
+  function showLogin() {
+    document.body.classList.add('auth-mode');
+    document.title = 'Sign in · CivicLoop';
+    if (dlg.open) dlg.close();
+    window.scrollTo(0, 0);
+  }
+
+  function signIn(user) {
+    session = { id: user.id, name: user.name, role: user.role };
+    $('lg-pw').value = ''; $('lg-id').value = ''; $('lg-name').value = '';
+    setLoginMode('signin');
+    document.body.classList.remove('auth-mode');
+    navigate(isAuthority() ? '#/authority' : '#/home');
+    toast('Welcome, ' + user.name + '! Signed in as ' + (isAuthority() ? 'an Authority' : 'a Civilian') + '.');
+  }
+
+  function signOut() {
+    session = null;
+    if (dlg.open) dlg.close();
+    pendingImage = null;
+    current = { name: 'login', arg: null };
+    try { location.hash = '#/login'; } catch (e) { /* ignore */ }
+    closeMenu();
+    showLogin();
+    setTimeout(function () { var f = $('lg-id'); if (f) f.focus(); }, 0);
+    toast('You have been signed out.');
+  }
+
+  function submitLogin(e) {
+    e.preventDefault();
+    var id = $('lg-id').value.trim().toLowerCase(), pw = $('lg-pw').value, role = pickedRole();
+    if (!id || !pw) { loginMsg('Please enter your Login ID and password.'); return; }
+    var accts = loadAccounts();
+    if (loginMode === 'signup') {
+      var nm = $('lg-name').value.trim();
+      if (!nm) { loginMsg('Please enter your full name.'); return; }
+      if (!/^[a-z0-9._-]{3,}$/.test(id)) { loginMsg('Login ID must be at least 3 characters (letters, numbers, . _ -).'); return; }
+      if (pw.length < 6) { loginMsg('Password must be at least 6 characters.'); return; }
+      if (SEED_ACCOUNTS[id] || accts[id]) { loginMsg('That Login ID is already taken.'); return; }
+      accts[id] = { pw: pw, role: role, name: nm };
+      saveAccounts(accts);
+      setLoginMode('signin');
+      $('lg-id').value = id; $('lg-pw').value = '';
+      loginMsg('Test account created. Sign in to continue.', true);
+      $('lg-pw').focus();
+      return;
+    }
+    var a = accts[id] || SEED_ACCOUNTS[id];
+    if (!a || a.pw !== pw) { loginMsg('Incorrect Login ID or password.'); return; }
+    if (a.role !== role) { loginMsg('This account is registered as ' + (a.role === 'user' ? 'a Civilian' : 'an Authority') + '. Pick the matching role above.'); return; }
+    signIn({ id: id, name: a.name, role: a.role });
+  }
+
+  function bindLogin() {
+    $('login-form').addEventListener('submit', submitLogin);
+    $('lg-toggle').addEventListener('click', function () { setLoginMode(loginMode === 'signin' ? 'signup' : 'signin'); });
+    $('lg-eye').addEventListener('click', function () {
+      var p = $('lg-pw'), hidden = p.type === 'password';
+      p.type = hidden ? 'text' : 'password';
+      this.textContent = hidden ? 'Hide' : 'Show';
+      this.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fill]'), function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-fill');
+        setLoginMode('signin');
+        document.querySelector('#login-form input[name=role][value=' + SEED_ACCOUNTS[id].role + ']').checked = true;
+        $('lg-id').value = id; $('lg-pw').value = SEED_ACCOUNTS[id].pw;
+        loginMsg('');
+        $('lg-go').focus();
+      });
+    });
+  }
+
+  /* ---------- 7. EVENTS (one listener per type — "event delegation") ---------- */
+  document.addEventListener('click', function (e) {
+    // Page links: handle them ourselves so navigation always works
+    var link = e.target.closest('a[href^="#/"]');
+    if (link && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      navigate(link.getAttribute('href'));
+      return;
+    }
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    var a = el.getAttribute('data-action'), id = el.getAttribute('data-id');
+    if (a === 'support') supportIssue(id);
+    else if (a === 'flag') flagIssue(id);
+    else if (a === 'manage') openManage(id);
+    else if (a === 'close-dialog') dlg.close();
+    else if (a === 'logout') signOut();
+    else if (a === 'clear-feed') { feedF = { q: '', cat: 'all', status: 'all', sort: 'support' }; renderFeed(); }
+    else if (a === 'clear-auth') { authF = { q: '', cat: 'all', status: 'all', sort: 'severity' }; renderAuthority(); }
+    else if (a === 'remove-image') { pendingImage = null; document.getElementById('r-image').value = ''; document.getElementById('image-preview').innerHTML = ''; }
+  });
+
+  function runForm(form) {
+    var kind = form.getAttribute('data-form');
+    if (kind === 'report') submitReport(form);
+    else if (kind === 'comment') addComment(form);
+    else if (kind === 'verify') saveVerification(form);
+    else if (kind === 'progress') saveProgress(form);
+  }
+  // Some embedded previews block real form submission, so the 'submit' event never fires.
+  // Handling the submit-button click directly (Enter key also triggers it) works everywhere.
+  document.addEventListener('click', function (e) {
+    var sb = e.target.closest('button[type="submit"]');
+    if (!sb || !sb.form) return;
+    if (sb.form.id === 'login-form') { e.preventDefault(); submitLogin(e); }
+    else if (sb.form.hasAttribute('data-form')) { e.preventDefault(); runForm(sb.form); }
+  });
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('[data-form]');
+    if (!form) return;
+    e.preventDefault();
+    runForm(form);
+  });
+
+  function onFilterInput(e) {
+    var t = e.target;
+    // Only re-render when the value really changed. (A 'change' event fires when a text box
+    // loses focus; re-rendering then replaced the button you were clicking and swallowed the click.)
+    if (t.hasAttribute('data-feed')) {
+      var fk = t.getAttribute('data-feed');
+      if (feedF[fk] === t.value) return;
+      feedF[fk] = t.value; fillFeed();
+    } else if (t.hasAttribute('data-auth')) {
+      var ak = t.getAttribute('data-auth');
+      if (authF[ak] === t.value) return;
+      authF[ak] = t.value; fillAuthority();
+    }
+  }
+  document.addEventListener('input', onFilterInput);
+  document.addEventListener('change', function (e) {
+    onFilterInput(e);
+    if (e.target.id === 'r-image') handleImageChange(e.target);
+  });
+
+  // Broken or missing images fall back to a friendly message (error events don't bubble, so use capture)
+  document.addEventListener('error', function (e) {
+    var img = e.target;
+    if (img && img.tagName === 'IMG' && img.getAttribute('data-fallback')) {
+      var d = document.createElement('div');
+      d.className = 'img-fallback';
+      d.textContent = 'The evidence image could not be loaded.';
+      img.replaceWith(d);
+    }
+  }, true);
+
+  // Mobile menu
+  document.getElementById('menu-btn').addEventListener('click', function () {
+    var nav = document.getElementById('main-nav');
+    var open = nav.classList.toggle('open');
+    this.setAttribute('aria-expanded', String(open));
+  });
+
+  // When the dialog closes, refresh the page behind it so changes show up
+  dlg.addEventListener('close', function () { renderView(false); });
+  // Click outside the dialog box closes it
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+
+  // Confirm dialog buttons
+  document.getElementById('confirm-ok').addEventListener('click', function () { finishConfirm(true); });
+  document.getElementById('confirm-cancel').addEventListener('click', function () { finishConfirm(false); });
+  cdlg.addEventListener('click', function (e) { if (e.target === cdlg) finishConfirm(false); });
+  cdlg.addEventListener('close', function () { if (confirmResolve) { var r = confirmResolve; confirmResolve = null; r(false); } }); // Esc key
+
+  // Keep multiple tabs in sync (demo convenience)
+  window.addEventListener('storage', function (e) {
+    if (session && e.key === STORAGE_KEY && !dlg.open && current.name !== 'report') { state = load(); renderView(false); }
+  });
+
+  window.addEventListener('hashchange', onHashChange);
+
+  // Start: the sign-in screen always comes first
+  bindLogin();
+  try { if (location.hash !== '#/login') location.hash = '#/login'; } catch (e) { /* ignore */ }
+  current = { name: 'login', arg: null };
+  renderView(false);
+})();
+</script>
 </body>
 </html>
