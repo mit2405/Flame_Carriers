@@ -374,8 +374,21 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
 .user-chip.is-authority small{background:var(--warn-bg);color:var(--warn-ink)}
 .main-nav .btn-sm{white-space:nowrap}
 @media (max-width:480px){.login-card{padding:26px 20px}.roles{gap:8px}}
+
+/* ---------- Maps ---------- */
+.map-box{position:relative;z-index:0;isolation:isolate;height:340px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#e9e6dc}
+.map-box.compact{height:230px}
+.map-fallback{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:20px;color:var(--muted);font-size:.9rem;background:repeating-linear-gradient(135deg,#efece2,#efece2 10px,#f5f2e9 10px,#f5f2e9 20px)}
+.map-fallback strong{color:var(--navy)}
+.map-facts{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:14px;font-size:.9rem;color:var(--ink)}
+.map-facts span{display:inline-flex;align-items:center;gap:6px}
+.map-key{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid;opacity:.9}
+.map-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.cl-pin{background:none;border:0}
+.leaflet-container{font:inherit}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 </head>
 <body class="auth-mode">
 <a class="skip" href="#main">Skip to main content</a>
@@ -476,6 +489,7 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 /* =========================================================
    CivicLoop — frontend-only demo
@@ -753,6 +767,209 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
     toastTimer = setTimeout(function () { t.className = ''; }, 3800);
   }
 
+  /* ---------- MAPS (Leaflet + OpenStreetMap data, loaded from the internet) ---------- */
+  var CITY_CENTER = [18.5204, 73.8567];
+  // Rough city centres by the first 3 digits of an Indian PIN code (used only when an address can't be looked up)
+  var PIN_PREFIX_GEO = {
+    '400': [19.0760, 72.8777], '401': [19.2183, 72.9781], '402': [18.9894, 73.1175], '410': [18.7500, 73.4000], '411': [18.5204, 73.8567], '412': [18.5204, 73.8567],
+    '422': [19.9975, 73.7898], '440': [21.1458, 79.0882], '431': [19.8762, 75.3433], '380': [23.0225, 72.5714], '390': [22.3072, 73.1812], '395': [21.1702, 72.8311],
+    '110': [28.6139, 77.2090], '121': [28.4089, 77.3178], '122': [28.4595, 77.0266], '201': [28.5355, 77.3910], '226': [26.8467, 80.9462], '302': [26.9124, 75.7873],
+    '560': [12.9716, 77.5946], '570': [12.2958, 76.6394], '600': [13.0827, 80.2707], '641': [11.0168, 76.9558], '682': [9.9312, 76.2673], '695': [8.5241, 76.9366],
+    '500': [17.3850, 78.4867], '520': [16.5062, 80.6480], '530': [17.6868, 83.2185], '700': [22.5726, 88.3639], '751': [20.2961, 85.8245], '800': [25.5941, 85.1376],
+    '462': [23.2599, 77.4126], '452': [22.7196, 75.8577], '160': [30.7333, 76.7794], '141': [30.9010, 75.8573], '781': [26.1445, 91.7362]
+  };
+  function pinCenter(pin) {
+    pin = String(pin || '');
+    return PIN_GEO[pin] || PIN_PREFIX_GEO[pin.slice(0, 3)] || null;
+  }
+  // Small steady offset so several approximate reports with the same PIN don't sit on one spot
+  function spread(id) {
+    var h = 0, t = String(id);
+    for (var k = 0; k < t.length; k++) h = (h * 31 + t.charCodeAt(k)) % 1000;
+    return [((h % 31) - 15) / 5000, ((Math.floor(h / 31) % 31) - 15) / 5000];
+  }
+  var PIN_GEO = { '411045': [18.5590, 73.7868], '411057': [18.5989, 73.7609], '411038': [18.5074, 73.8077], '411016': [18.5538, 73.8260], '400077': [19.0790, 72.8985] };
+  var SEED_GEO = {
+    'ci-1001': [18.5590, 73.7868], 'ci-1002': [18.5989, 73.7609], 'ci-1003': [18.5645, 73.7790], 'ci-1004': [18.5074, 73.8077],
+    'ci-1005': [18.5530, 73.8250], 'ci-1006': [18.5548, 73.8270], 'ci-1007': [18.5110, 73.8030]
+  };
+  // How far a problem reaches, estimated from the reporter's "people affected" rating (metres)
+  var AREA_RADIUS = { 1: 60, 2: 150, 3: 400, 4: 800, 5: 1500 };
+  var SEV_COLOR = { Low: '#2f7a46', Medium: '#b7791f', High: '#c2410c', Critical: '#b91c1c' };
+  // Map tiles: none of these need an API key. If one fails to load, the next one is used automatically.
+  var TILE_PROVIDERS = [
+    { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', attr: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, OpenStreetMap contributors' },
+    { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attr: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' },
+    { url: 'https://tile.openstreetmap.de/{z}/{x}/{y}.png', attr: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }
+  ];
+  var maps = {};
+  var pickerMarker = null;
+  var pendingGeo = null; // { lat, lng } chosen on the report form map
+
+  function mapsReady() { return typeof window.L !== 'undefined' && typeof window.L.map === 'function'; }
+  function geoOf(i) {
+    var g, sp;
+    if (i.approx) { // placed from the PIN code only, so always follow the PIN (fixes older saved reports too)
+      g = pinCenter(i.pin);
+      if (g) { sp = spread(i.id); return { lat: g[0] + sp[0], lng: g[1] + sp[1], approx: true }; }
+    }
+    if (typeof i.lat === 'number' && typeof i.lng === 'number') return { lat: i.lat, lng: i.lng, approx: !!i.approx };
+    g = SEED_GEO[i.id];
+    if (g) return { lat: g[0], lng: g[1], approx: false };
+    g = pinCenter(i.pin);
+    if (g) return { lat: g[0], lng: g[1], approx: true };
+    return { lat: CITY_CENTER[0], lng: CITY_CENTER[1], approx: true };
+  }
+  function radiusOf(i) { return AREA_RADIUS[i.impact.affected] || 400; }
+  function fmtRadius(m) { return m >= 1000 ? (m / 1000).toString().replace(/\.0$/, '') + ' km' : m + ' m'; }
+  function distKm(a, b) {
+    var R = 6371, rad = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+    var x = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(x));
+  }
+  function areaSummary(i) {
+    return icon('pin', 14) + ' ' + esc(i.locality) + ' · PIN ' + esc(i.pin) + ' — affected area about <strong>' + fmtRadius(radiusOf(i)) + '</strong> around the pin · ' + esc(AFFECTED_LABELS[i.impact.affected]);
+  }
+  function destroyMap(id) { if (maps[id]) { try { maps[id].remove(); } catch (e) {} delete maps[id]; } }
+  function destroyMaps() { Object.keys(maps).forEach(destroyMap); pickerMarker = null; }
+  function pinIcon() {
+    return L.divIcon({ className: 'cl-pin', iconSize: [30, 40], iconAnchor: [15, 38],
+      html: '<svg width="30" height="40" viewBox="0 0 30 40" aria-hidden="true"><path d="M15 39C15 39 2 25 2 15a13 13 0 0 1 26 0c0 10-13 24-13 24z" fill="#0f1f3d" stroke="#fff" stroke-width="2"/><circle cx="15" cy="15" r="5" fill="#5fd0c4"/></svg>' });
+  }
+  function mapUnavailable(el, text) {
+    el.innerHTML = '<div class="map-fallback">' + icon('pin', 24) + '<strong>Map not available</strong><span>' + text + '</span></div>';
+  }
+  function addTiles(map) {
+    var idx = 0, errors = 0, layer = null;
+    function use() {
+      if (layer) { try { map.removeLayer(layer); } catch (e) {} }
+      var prov = TILE_PROVIDERS[idx];
+      layer = L.tileLayer(prov.url, { maxZoom: 19, attribution: prov.attr });
+      // several failed tiles in a row = this provider is blocked, so move on to the next one
+      layer.on('tileerror', function () {
+        errors += 1;
+        if (errors >= 4 && idx < TILE_PROVIDERS.length - 1) { idx += 1; errors = 0; use(); }
+      });
+      layer.addTo(map);
+    }
+    use();
+  }
+
+  // Pin + shaded circle showing how far the problem reaches, plus other reports nearby
+  function mountIssueMap(elId, i) {
+    var el = document.getElementById(elId);
+    if (!el) return;
+    destroyMap(elId);
+    if (!mapsReady()) { mapUnavailable(el, 'Connect to the internet to see the map. Affected area: about ' + fmtRadius(radiusOf(i)) + ' around ' + esc(i.locality) + '.'); return; }
+    var g = geoOf(i), here = [g.lat, g.lng], r = radiusOf(i), color = SEV_COLOR[severityOf(i).label] || '#0f766e';
+    var map = L.map(el, { scrollWheelZoom: false }).setView(here, 15);
+    maps[elId] = map;
+    addTiles(map);
+    var circle = L.circle(here, { radius: r, color: color, weight: 2, fillColor: color, fillOpacity: 0.18 }).addTo(map);
+    circle.bindTooltip('Affected area · about ' + fmtRadius(r) + ' radius');
+    state.issues.forEach(function (o) {
+      if (o.id === i.id) return;
+      var og = geoOf(o);
+      if (distKm(g, og) > 3) return;
+      L.circleMarker([og.lat, og.lng], { radius: 6, color: '#586377', weight: 2, fillColor: '#ffffff', fillOpacity: 1 }).addTo(map).bindTooltip('Nearby: ' + esc(o.title));
+    });
+    L.marker(here, { icon: pinIcon(), keyboard: false }).addTo(map).bindTooltip(esc(i.locality), { direction: 'top', offset: [0, -34] });
+    map.fitBounds(circle.getBounds().pad(0.5), { maxZoom: 16 });
+    setTimeout(function () { try { map.invalidateSize(); } catch (e) {} }, 120);
+  }
+  function nearbyCount(i) {
+    var g = geoOf(i);
+    return state.issues.filter(function (o) { return o.id !== i.id && distKm(g, geoOf(o)) <= 3; }).length;
+  }
+  function mapCard(i) {
+    var g = geoOf(i), n = nearbyCount(i), color = SEV_COLOR[severityOf(i).label] || '#0f766e';
+    return '<section class="section" aria-labelledby="map-title"><h2 id="map-title">Location and affected area</h2><div class="card">' +
+      '<div id="issue-map" class="map-box" role="region" aria-label="Map of ' + esc(i.locality) + ' showing the affected area"></div>' +
+      '<div class="map-facts">' +
+        '<span>' + icon('pin', 16) + '<strong>' + esc(i.locality) + '</strong>, ' + esc(i.city) + ' · PIN ' + esc(i.pin) + '</span>' +
+        '<span><i class="map-key" style="border-color:' + color + ';background:' + color + '33"></i>Affected area: about <strong>' + fmtRadius(radiusOf(i)) + '</strong> radius</span>' +
+        '<span>' + icon('up', 16) + esc(AFFECTED_LABELS[i.impact.affected]) + '</span>' +
+        '<span>' + n + (n === 1 ? ' other report' : ' other reports') + ' within 3 km</span>' +
+      '</div>' +
+      (g.approx ? '<p class="small muted" style="margin:10px 0 0">Approximate location, placed using the PIN code area.</p>' : '') +
+      '</div></section>';
+  }
+
+  // Location picker on the report form
+  function setGeoStatus(t) { var el = document.getElementById('geo-status'); if (el) el.textContent = t || ''; }
+  function mountPicker() {
+    var el = document.getElementById('picker-map');
+    if (!el) return;
+    if (!mapsReady()) { mapUnavailable(el, 'The map needs an internet connection. Your report will be placed using its PIN code area.'); return; }
+    var map = L.map(el, { scrollWheelZoom: false }).setView([21.5, 79], 5);
+    maps['picker-map'] = map;
+    addTiles(map);
+    map.on('click', function (e) { setPickerPoint(e.latlng.lat, e.latlng.lng, 0); });
+    setTimeout(function () { try { map.invalidateSize(); } catch (e) {} }, 120);
+  }
+  function setPickerPoint(lat, lng, zoom) {
+    var map = maps['picker-map'];
+    pendingGeo = { lat: lat, lng: lng };
+    if (!map) return;
+    if (pickerMarker) pickerMarker.setLatLng([lat, lng]);
+    else {
+      pickerMarker = L.marker([lat, lng], { icon: pinIcon(), draggable: true }).addTo(map);
+      pickerMarker.on('dragend', function () { var q = pickerMarker.getLatLng(); pendingGeo = { lat: q.lat, lng: q.lng }; });
+    }
+    if (zoom) map.setView([lat, lng], zoom);
+    setGeoStatus('Pin placed. Drag it or click elsewhere to adjust.');
+  }
+  function geoMe() {
+    if (!navigator.geolocation) { toast('Your browser cannot share its location.', 'error'); return; }
+    setGeoStatus('Finding your location…');
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      setPickerPoint(pos.coords.latitude, pos.coords.longitude, 17);
+    }, function () { setGeoStatus(''); toast('Could not get your location. Click the map to place the pin instead.', 'error'); }, { timeout: 10000 });
+  }
+  // Looks an address up with OpenStreetMap's Nominatim search. done(result|null, networkFailed)
+  function geocode(queries, done) {
+    (function next(k) {
+      if (k >= queries.length) { done(null, false); return; }
+      var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 7000);
+      fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q=' + encodeURIComponent(queries[k]), ctl ? { signal: ctl.signal } : undefined)
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          clearTimeout(timer);
+          if (res && res[0]) done({ lat: parseFloat(res[0].lat), lng: parseFloat(res[0].lon), k: k }, false);
+          else next(k + 1);
+        })
+        .catch(function () { clearTimeout(timer); done(null, true); });
+    })(0);
+  }
+  function addressQueries(loc, city, pin) {
+    var q = [], validPin = /^[1-9][0-9]{5}$/.test(pin);
+    if (loc || city) q.push([loc, city, pin, 'India'].filter(Boolean).join(', '));
+    if (loc && validPin) q.push([loc, pin, 'India'].join(', '));
+    if (validPin) q.push(pin + ', India');
+    if (loc) q.push(loc + ', India');
+    return q;
+  }
+  function geoFind() {
+    var v = function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
+    var queries = addressQueries(v('r-locality'), v('r-city'), v('r-pin'));
+    if (!queries.length) { toast('Fill in the locality, city or PIN code first, or click the map.', 'error'); return; }
+    setGeoStatus('Searching…');
+    geocode(queries, function (g, offline) {
+      if (g) setPickerPoint(g.lat, g.lng, g.k === 0 ? 17 : 15);
+      else setGeoStatus(offline ? 'Search needs an internet connection. Click the map to place the pin.' : 'Could not find that address. Click the map to place the pin.');
+    });
+  }
+  // When a valid PIN code is typed, bring the report map to that area (no pin is placed)
+  function centerPickerOnPin() {
+    var el = document.getElementById('r-pin'), map = maps['picker-map'];
+    if (!el || !map || pendingGeo || !/^[1-9][0-9]{5}$/.test(el.value.trim())) return;
+    var pin = el.value.trim(), c = pinCenter(pin);
+    if (c) map.setView(c, 13);
+    geocode([pin + ', India'], function (g) { if (g && !pendingGeo && maps['picker-map'] === map) map.setView([g.lat, g.lng], 14); });
+  }
+
   /* ---------- 4. VIEWS ---------- */
   var current = { name: 'home', arg: null };
   var feedF = { q: '', cat: 'all', status: 'all', sort: 'support' };
@@ -897,6 +1114,7 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
   /* ----- Report form ----- */
   function renderReport() {
     pendingImage = null;
+    pendingGeo = null;
     app.innerHTML =
       '<h1 style="font-size:2.2rem">Report a problem</h1>' +
       '<p class="lead">Be specific and add a photo if you can — clear evidence makes review faster.</p>' +
@@ -912,12 +1130,18 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
           field('r-safety', 'Safety risk', '<select id="r-safety" name="safety" aria-describedby="e-safety">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (n === 3 ? ' selected' : '') + '>' + n + ' — ' + SAFETY_LABELS[n] + '</option>'; }).join('') + '</select>', 'safety') +
           field('r-affected', 'People affected (impact)', '<select id="r-affected" name="affected" aria-describedby="e-affected">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (n === 3 ? ' selected' : '') + '>' + n + ' — ' + AFFECTED_LABELS[n] + '</option>'; }).join('') + '</select>', 'affected') +
           field('r-name', 'Your name (optional)', '<input type="text" id="r-name" name="name" maxlength="40" autocomplete="off" aria-describedby="h-name" value="' + esc(session ? session.name : '') + '"><span class="hint" id="h-name">Leave blank to post as “Anonymous community member”. Don’t enter private details.</span>', 'name') +
+          '<div class="field full"><span class="label" id="loc-label">Location on the map</span>' +
+            '<span class="hint">Click the map to drop a pin and drag it to adjust. If you skip this, the PIN code area is used.</span>' +
+            '<div class="map-tools"><button type="button" class="btn btn-secondary btn-sm" data-action="geo-me">' + icon('pin', 15) + ' Use my location</button>' +
+            '<button type="button" class="btn btn-secondary btn-sm" data-action="geo-find">' + icon('search', 15) + ' Find from the address above</button></div>' +
+            '<div id="picker-map" class="map-box" role="region" aria-labelledby="loc-label" style="height:280px"></div><p class="hint" id="geo-status" aria-live="polite" style="margin:6px 0 0"></p></div>' +
           '<div class="field full"><label for="r-image">Evidence image (optional)</label>' +
             '<input type="file" id="r-image" accept="image/*" aria-describedby="e-image h-image"><span class="hint" id="h-image">JPG, PNG or WebP under 8 MB. Avoid faces, number plates and private information.</span>' +
             '<p class="field-error" id="e-image" hidden></p><div id="image-preview"></div></div>' +
         '</div>' +
         '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:22px"><button class="btn btn-primary" type="submit">Submit report</button><a class="btn btn-secondary" href="#/feed">Cancel</a></div>' +
       '</form>';
+    mountPicker();
   }
   function field(id, label, control, key, full) {
     return '<div class="field' + (full ? ' full' : '') + '"><label for="' + id + '">' + label + '</label>' + control + '<p class="field-error" id="e-' + key + '" hidden></p></div>';
@@ -944,6 +1168,7 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
           ? '<figure class="evidence" style="margin:18px 0"><img src="' + esc(ev.src) + '" alt="Evidence for: ' + esc(i.title) + '" data-fallback="1"><figcaption>' + esc(ev.caption) + '</figcaption></figure>'
           : '<div class="notice warn" style="margin:18px 0">' + icon('alert', 16) + ' No evidence image was attached. Reports with clear evidence are easier to verify.</div>') +
         '<h2>Description</h2><p style="white-space:pre-wrap">' + esc(i.description) + '</p>' +
+        mapCard(i) +
 
         '<section class="section" aria-labelledby="tl-title"><h2 id="tl-title">Status timeline</h2><div class="card"><ol class="timeline">' +
           i.timeline.slice().sort(function (a, b) { return new Date(a.ts) - new Date(b.ts); }).map(function (t) {
@@ -984,6 +1209,7 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
 
         (isAuthority() ? '<button class="btn btn-primary" type="button" data-action="manage" data-id="' + i.id + '" style="justify-content:center">Review / respond to this report</button>' : '') +
       '</aside></div>';
+    mountIssueMap('issue-map', i);
   }
   function factor(label, val, text) {
     return '<div class="factor"><div class="factor-top"><span>' + label + '</span><strong>' + val + '/5</strong></div><div class="bar" role="img" aria-label="' + esc(label) + ' ' + val + ' out of 5"><i style="width:' + (val / 5 * 100) + '%"></i></div><div class="small muted">' + esc(text) + '</div></div>';
@@ -1046,6 +1272,7 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
   function renderManage(id) {
     var i = findIssue(id);
     if (!i) return;
+    destroyMap('manage-map');
     var ev = evidenceOf(i);
     var rank = i.progress ? PROGRESS.indexOf(i.progress) : -1;
     var nextOptions = PROGRESS.filter(function (p, idx) { return idx > rank; });
@@ -1068,6 +1295,7 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
       '<div class="dialog-body">' +
         '<p class="small muted" style="margin:0">' + icon('pin', 14) + ' ' + esc(i.locality) + ', ' + esc(i.city) + ' · PIN ' + esc(i.pin) + ' · ' + i.supports + ' public supporters (support is not verification)</p>' +
         (ev ? '<figure class="evidence" style="margin:0"><img src="' + esc(ev.src) + '" alt="Evidence for ' + esc(i.title) + '" data-fallback="1" style="max-height:220px"><figcaption>' + esc(ev.caption) + '</figcaption></figure>' : '<div class="notice warn">No evidence image attached.</div>') +
+        '<div><div id="manage-map" class="map-box compact" role="region" aria-label="Map of the affected area"></div><p class="small muted" style="margin:8px 0 0">' + areaSummary(i) + '</p></div>' +
         '<section class="card" aria-labelledby="m-h1"><h3 id="m-h1">1. Evidence review</h3>' +
           '<form data-form="verify" data-id="' + i.id + '" novalidate style="display:grid;gap:12px">' +
             '<div class="form-grid"><div class="field"><label for="m-ver">Verification status</label><select id="m-ver">' + ['Under Review', 'Verified', 'Insufficient Evidence'].map(function (v) { return '<option' + (i.verification === v ? ' selected' : '') + '>' + v + '</option>'; }).join('') + '</select></div>' +
@@ -1076,6 +1304,8 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
             '<div><button class="btn btn-primary btn-sm" type="submit">Save review</button></div></form></section>' +
         '<section class="card" aria-labelledby="m-h2"><h3 id="m-h2">2. Authority response and progress</h3>' + progressHtml + '</section>' +
       '</div>';
+    // the dialog is opened right after this runs, so draw the map on the next tick
+    setTimeout(function () { mountIssueMap('manage-map', i); }, 0);
   }
 
   function renderNotFound() {
@@ -1090,6 +1320,7 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
   var TITLES = { login: 'Sign in', home: 'Home', feed: 'Community feed', report: 'Report a problem', authority: 'Authority dashboard', issue: 'Issue details' };
 
   function renderView(isNavigation) {
+    destroyMaps();
     // Nobody signed in -> always show the sign-in screen
     if (!session) { showLogin(); return; }
     var v = current;
@@ -1224,24 +1455,44 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
     }
     summary.hidden = true;
 
-    var now = new Date().toISOString();
-    var issue = {
-      id: 'ci-' + Date.now().toString(36),
-      title: data.title, description: data.description, category: data.category,
-      locality: data.locality, city: data.city, pin: data.pin,
-      impact: { safety: Number(document.getElementById('r-safety').value), affected: Number(document.getElementById('r-affected').value) },
-      evidenceRating: null, image: pendingImage, sampleArt: null,
-      reporter: v('r-name') || 'Anonymous community member', createdAt: now, supports: 0, flags: 0,
-      verification: 'Submitted', progress: null,
-      timeline: [{ ts: now, type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' }],
-      comments: []
+    var snap = {
+      safety: Number(document.getElementById('r-safety').value), affected: Number(document.getElementById('r-affected').value),
+      reporter: v('r-name') || 'Anonymous community member', image: pendingImage
     };
-    state.issues.unshift(issue);
-    logActivity('New report: ' + issue.title, issue.id);
-    if (!save()) { /* toast already shown; keep in memory for this session */ }
-    pendingImage = null;
-    toast('Report submitted. It now awaits moderator review.');
-    navigate('#/issue/' + issue.id);
+    function finish(geo, approx) {
+      if (!document.getElementById('report-form')) return; // the person left this page while the location was being found
+      var now = new Date().toISOString();
+      var issue = {
+        id: 'ci-' + Date.now().toString(36),
+        title: data.title, description: data.description, category: data.category,
+        locality: data.locality, city: data.city, pin: data.pin,
+        impact: { safety: snap.safety, affected: snap.affected },
+        evidenceRating: null, image: snap.image, sampleArt: null, lat: geo.lat, lng: geo.lng, approx: approx,
+        reporter: snap.reporter, createdAt: now, supports: 0, flags: 0,
+        verification: 'Submitted', progress: null,
+        timeline: [{ ts: now, type: 'submitted', label: 'Report submitted', actor: 'Community', note: '' }],
+        comments: []
+      };
+      state.issues.unshift(issue);
+      logActivity('New report: ' + issue.title, issue.id);
+      if (!save()) { /* toast already shown; keep in memory for this session */ }
+      pendingImage = null;
+      toast('Report submitted. It now awaits moderator review.');
+      navigate('#/issue/' + issue.id);
+    }
+
+    if (pendingGeo) { finish(pendingGeo, false); return; }
+
+    // No pin was placed: find the address, then fall back to the PIN code's area
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Finding location…'; }
+    geocode(addressQueries(data.locality, data.city, data.pin), function (g) {
+      if (!document.getElementById('report-form')) return;
+      if (btn) { btn.disabled = false; btn.textContent = 'Submit report'; }
+      if (g) { finish({ lat: g.lat, lng: g.lng }, g.k !== 0); return; }
+      var c = pinCenter(data.pin) || CITY_CENTER, sp = spread(data.title + data.pin);
+      finish({ lat: c[0] + sp[0], lng: c[1] + sp[1] }, true);
+    });
   }
 
   function addComment(form) {
@@ -1468,6 +1719,8 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
     else if (a === 'logout') signOut();
     else if (a === 'clear-feed') { feedF = { q: '', cat: 'all', status: 'all', sort: 'support' }; renderFeed(); }
     else if (a === 'clear-auth') { authF = { q: '', cat: 'all', status: 'all', sort: 'severity' }; renderAuthority(); }
+    else if (a === 'geo-me') geoMe();
+    else if (a === 'geo-find') geoFind();
     else if (a === 'remove-image') { pendingImage = null; document.getElementById('r-image').value = ''; document.getElementById('image-preview').innerHTML = ''; }
   });
 
@@ -1511,6 +1764,7 @@ body.auth-mode .site-header,body.auth-mode .authority-banner,body.auth-mode main
   document.addEventListener('change', function (e) {
     onFilterInput(e);
     if (e.target.id === 'r-image') handleImageChange(e.target);
+    if (e.target.id === 'r-pin') centerPickerOnPin();
   });
 
   // Broken or missing images fall back to a friendly message (error events don't bubble, so use capture)
