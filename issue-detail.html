@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review issue — CivicLoop authority</title>
+<link rel="stylesheet" href="css/authority.css">
+</head>
+<body>
+<div id="mock-banner" hidden><strong>DEMO MOCK:</strong> sample data in memory, not the real backend. Nothing is sent to any real authority.</div>
+<header><div class="bar">
+  <a class="brand" href="index.html">CivicLoop</a>
+  <nav aria-label="Main">
+    <a href="../user/index.html">Public site</a>
+    <a href="index.html">Authority dashboard</a>
+    <button class="btn secondary" type="button" data-logout>Log out</button>
+  </nav>
+</div></header>
+<main><div class="container">
+  <p><a href="index.html">&larr; Back to dashboard</a></p>
+  <div id="app" aria-live="polite"><p class="muted">Loading…</p></div>
+</div></main>
+<div id="toast" role="status" hidden></div>
+<script src="js/mock-authority.js"></script>
+<script src="js/authority-api.js"></script>
+<script src="js/issue-detail.js"></script>
+</body>
+</html>

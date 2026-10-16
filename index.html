@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authority dashboard — CivicLoop</title>
+<link rel="stylesheet" href="css/authority.css">
+</head>
+<body>
+<div id="mock-banner" hidden><strong>DEMO MOCK:</strong> sample data in memory, not the real backend. Nothing is sent to any real authority.</div>
+<header><div class="bar">
+  <a class="brand" href="index.html">CivicLoop</a>
+  <nav aria-label="Main">
+    <a href="../user/index.html">Public site</a>
+    <a href="index.html" aria-current="page">Authority dashboard</a>
+    <button class="btn secondary" type="button" data-logout>Log out</button>
+  </nav>
+</div></header>
+<main><div class="container">
+  <h1>Authority dashboard</h1>
+  <p class="muted">Review reported issues. Support count, verification, severity and progress are shown separately. You can act only on issues a moderator has verified.</p>
+
+  <div class="stats" aria-label="Summary">
+    <div class="stat"><b id="s-await">–</b>Verified, awaiting action</div>
+    <div class="stat"><b id="s-ack">–</b>Acknowledged</div>
+    <div class="stat"><b id="s-prog">–</b>In progress</div>
+    <div class="stat"><b id="s-done">–</b>Resolved</div>
+  </div>
+
+  <form id="filters" class="toolbar card" novalidate>
+    <div class="field"><label for="q">Locality or city</label><input id="q" name="q" type="search"></div>
+    <div class="field"><label for="pin_code">PIN code</label><input id="pin_code" name="pin_code" type="text" inputmode="numeric" maxlength="6"></div>
+    <div class="field"><label for="category">Category</label><select id="category" name="category">
+      <option value="">All</option><option value="road">Road</option><option value="garbage">Garbage</option><option value="water">Water</option>
+      <option value="electricity">Electricity</option><option value="safety">Safety</option><option value="college">College</option><option value="other">Other</option></select></div>
+    <div class="field"><label for="verification_status">Verification</label><select id="verification_status" name="verification_status">
+      <option value="">All</option><option value="submitted">Submitted</option><option value="under_review">Under review</option><option value="verified">Verified</option><option value="insufficient_evidence">Insufficient evidence</option></select></div>
+    <div class="field"><label for="progress_status">Progress</label><select id="progress_status" name="progress_status">
+      <option value="">All</option><option value="none">Not started</option><option value="acknowledged">Acknowledged</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select></div>
+    <div class="field"><label for="sort">Sort by</label><select id="sort" name="sort">
+      <option value="severity">Highest severity</option><option value="newest">Newest</option><option value="support">Most support</option></select></div>
+    <button class="btn" type="submit">Apply</button>
+  </form>
+
+  <p id="list-msg" class="err" role="alert"></p>
+  <div id="list" aria-live="polite"></div>
+  <div class="pager"><button class="btn secondary" type="button" id="prev">Previous</button><span id="page-info" class="muted small"></span><button class="btn secondary" type="button" id="next">Next</button></div>
+</div></main>
+<div id="toast" role="status" hidden></div>
+<script src="js/mock-authority.js"></script>
+<script src="js/authority-api.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
